@@ -634,26 +634,15 @@ class GlyphAtlasApp(ctk.CTk):
             logo_img = ctk.CTkImage(
                 light_image=Image.open(asset("logo.png")),
                 dark_image=Image.open(asset("logo.png")),
-                size=(40, 40)
+                size=(168, 60)
             )
-            ctk.CTkLabel(logo_area, image=logo_img, text="").pack(side="left")
+            ctk.CTkLabel(logo_area, image=logo_img, text="").pack()
         except Exception:
-            ctk.CTkLabel(logo_area, text="GA",
+            ctk.CTkLabel(logo_area, text="GlyphAtlas",
                          font=(T.FONT_FAMILY_UI, 20, "bold"),
                          text_color=T.ACCENT_PURPLE_L,
-                         width=42, height=42,
-                         fg_color=T.BG_SELECTED, corner_radius=8
-                         ).pack(side="left")
-
-        title_col = ctk.CTkFrame(logo_area, fg_color="transparent")
-        title_col.pack(side="left", padx=(10, 0))
-        ctk.CTkLabel(title_col, text="GlyphAtlas",
-                     font=(T.FONT_FAMILY_UI, T.FONT_LG, "bold"),
-                     text_color=T.TEXT_PRIMARY).pack(anchor="w")
-        ctk.CTkLabel(title_col, text="Unicode to Codepoint\nMade simple.",
-                     font=(T.FONT_FAMILY_UI, 10),
-                     text_color=T.TEXT_MUTED,
-                     justify="left").pack(anchor="w")
+                         fg_color="transparent"
+                         ).pack()
 
         # ── Divider ───────────────────────────────────────────────────────────
         ctk.CTkFrame(sidebar, fg_color=T.BORDER_DEFAULT, height=1).pack(fill="x", padx=12, pady=(0, 12))
