@@ -81,12 +81,8 @@ def get_common_usage(codepoints: list[int]) -> str:
                 cats.add("Cyrillic")
             elif "GREEK" in name:
                 cats.add("Greek")
-            elif "HIRAGANA" in name or "KATAKANA" in name:
-                cats.add("Japanese")
-            elif "HANGUL" in name:
-                cats.add("Korean")
-            elif "DEVANAGARI" in name:
-                cats.add("Devanagari")
+            elif "TAMIL" in name:
+                cats.add("Tamil")
             else:
                 cats.add("General")
         except Exception:
