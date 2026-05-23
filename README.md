@@ -1,7 +1,8 @@
 <div align="center">
   <img src="assets/logo.png" alt="GlyphAtlas Logo" width="220"/>
 
-  # GlyphAtlas
+# GlyphAtlas
+
   **Unicode to Codepoint Converter — Made simple.**
 
   ![Python](https://img.shields.io/badge/Python-3.10%2B-blue?style=flat-square&logo=python)
@@ -38,13 +39,13 @@ Reformatting that by hand — every single time — is a hassle that adds up fas
 
 This problem hits especially hard when using **[raylib](https://www.raylib.com/)**. Raylib has limited UTF-8 support out of the box, and the **only reliable way to render non-Latin glyphs** is to load their codepoints explicitly at font load time using `LoadFontEx`. Without the right codepoint array, your characters simply won't render.
 
-This isn't a workaround — it's the only way.
+This isn't a workaround, it's the only way.
 
 ---
 
 ## The Idea
 
-> *"What if there was a small tool that just takes your characters, and spits out a ready-to-use codepoint array with a count — no reformatting, no searching, no AI tokens wasted?"*
+> *"What if there was a small tool that just takes your characters, and spits out a ready-to-use codepoint array with a count; no reformatting, no searching, no AI tokens wasted?"*
 
 That question is what started GlyphAtlas. It was built first for personal use during game development, then polished and shared because this is a problem that affects anyone doing C/C++ work with international text — not just game developers.
 
@@ -65,7 +66,7 @@ That question is what started GlyphAtlas. It was built first for personal use du
 
 ## Screenshots
 
-> *(Add screenshots here)*
+![GlyphAtlas screenshot 1](./assets/screenshot.png)
 
 ---
 
