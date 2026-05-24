@@ -8,12 +8,13 @@ import customtkinter as ctk
 from PIL import Image
 import os
 import sys
+import re
 
 import theme as T
 from utils import (
     get_codepoints, format_c_array, format_cpp_vector, format_json,
     format_space_separated, format_unicode_escape, format_count_statement,
-    count_utf8_bytes, get_common_usage, is_non_latin
+    get_common_usage, is_non_latin
 )
 
 # ── CustomTkinter global setup ────────────────────────────────────────────────
@@ -48,6 +49,11 @@ class CodeText(tk.Text):
     TAG_PUNC = "punc"
     TAG_KW   = "kw"
 
+    # Pre-compiled patterns (class-level, compiled once)
+    _RE_SPLIT = re.compile(r"(0x[0-9a-fA-F]+|int|std::vector<int>|std::vector)")
+    _RE_HEX   = re.compile(r"^0x[0-9a-fA-F]+$")
+    _TYPE_KEYWORDS = frozenset({"int", "std::vector<int>", "std::vector"})
+
     def __init__(self, master, height=5, **kwargs):
         super().__init__(
             master,
@@ -70,22 +76,24 @@ class CodeText(tk.Text):
         self.tag_configure(self.TAG_HEX,  foreground=T.TEXT_CODE_HEX)
         self.tag_configure(self.TAG_PUNC, foreground=T.TEXT_CODE_PUNC)
         self.tag_configure(self.TAG_KW,   foreground=T.ACCENT_PURPLE_L)
+        self._last_code: str | None = None   # cache to skip redundant updates
 
     def set_code(self, text: str):
-        """Replace content and apply syntax highlighting."""
+        """Replace content and apply syntax highlighting (skips if unchanged)."""
+        if text == self._last_code:
+            return
+        self._last_code = text
         self.configure(state="normal")
         self.delete("1.0", "end")
         self._insert_highlighted(text)
         self.configure(state="disabled")
 
     def _insert_highlighted(self, code: str):
-        import re
-        # Tokenise: keywords/types, hex values, rest
-        tokens = re.split(r"(0x[0-9a-fA-F]+|int|std::vector<int>|std::vector)", code)
+        tokens = self._RE_SPLIT.split(code)
         for tok in tokens:
-            if re.fullmatch(r"0x[0-9a-fA-F]+", tok):
+            if self._RE_HEX.match(tok):
                 self.insert("end", tok, self.TAG_HEX)
-            elif tok in ("int", "std::vector<int>", "std::vector"):
+            elif tok in self._TYPE_KEYWORDS:
                 self.insert("end", tok, self.TAG_TYPE)
             else:
                 self.insert("end", tok)
@@ -151,6 +159,7 @@ class ConverterPage(ctk.CTkFrame):
         super().__init__(master, fg_color="transparent", **kwargs)
         self._current_tab = "C++ Vector"
         self._font_index  = 0
+        self._debounce_id = None   # for input debouncing
         self._preview_fonts = self._load_preview_fonts()
         self._build_ui()
 
@@ -251,8 +260,8 @@ class ConverterPage(ctk.CTkFrame):
             wrap="word",
         )
         self._input_text.pack(fill="x")
-        self._input_text.bind("<KeyRelease>", self._on_input_change)
-        self._input_text.bind("<<Paste>>", lambda e: self.after(10, self._on_input_change))
+        self._input_text.bind("<KeyRelease>", self._schedule_update)
+        self._input_text.bind("<<Paste>>", lambda e: self._schedule_update())
 
         # Footer: char count + clear
         inp_foot = ctk.CTkFrame(inp_card, fg_color="transparent")
@@ -441,16 +450,31 @@ class ConverterPage(ctk.CTkFrame):
             )
         return False, True, False   # defaults
 
+    def _schedule_update(self, _event=None):
+        """Debounce input: cancel pending timer, schedule after 50 ms."""
+        if self._debounce_id is not None:
+            self.after_cancel(self._debounce_id)
+        self._debounce_id = self.after(50, self._on_input_change)
+
     def _on_input_change(self, _event=None):
+        self._debounce_id = None
         text = self._input_text.get("1.0", "end-1c")
         inc_latin, pfx, upper = self._get_settings()
 
-        cps = get_codepoints(text, include_latin=inc_latin)
-
-        if inc_latin:
-            chars = [ch for ch in text if ch.strip() or ord(ch) > 0x20]
-        else:
-            chars = [ch for ch in text if is_non_latin(ch)]
+        # Single-pass: collect codepoints, chars, and utf8 byte count together
+        cps = []
+        chars = []
+        utf8 = 0
+        for ch in text:
+            if inc_latin:
+                if ch.strip() or ord(ch) > 0x20:
+                    cps.append(ord(ch))
+                    chars.append(ch)
+                    utf8 += len(ch.encode("utf-8"))
+            elif is_non_latin(ch):
+                cps.append(ord(ch))
+                chars.append(ch)
+                utf8 += len(ch.encode("utf-8"))
 
         # Char count
         self._char_count_lbl.configure(text=f"Characters: {len(chars)}")
@@ -469,7 +493,6 @@ class ConverterPage(ctk.CTkFrame):
 
         # Quick info
         n = len(cps)
-        utf8 = count_utf8_bytes(text, include_latin=inc_latin)
         first = f"U+{cps[0]:04X}"  if cps else "—"
         last  = f"U+{cps[-1]:04X}" if cps else "—"
         usage = get_common_usage(cps)
@@ -573,9 +596,33 @@ class ConverterPage(ctk.CTkFrame):
         # Recursively update all widgets
         self._recolor_widgets(app, p)
 
+    # Pre-built color lookup tables (built once, shared across all calls)
+    _BG_MAP = {}
+    _TC_MAP = {}
+    _BTN_SET = set()
+
+    @classmethod
+    def _ensure_color_maps(cls):
+        """Build color maps once on first use."""
+        if cls._BG_MAP:
+            return
+        for key in ("BG_INPUT", "BG_CODE", "BG_SIDEBAR", "BG_DARKEST"):
+            cls._BG_MAP[T.DARK[key]] = key
+            cls._BG_MAP[T.LIGHT[key]] = key
+            # Also map the module-level constant (same as DARK)
+            cls._BG_MAP[getattr(T, key)] = key
+        for key in ("TEXT_PRIMARY", "TEXT_SECONDARY", "TEXT_MUTED", "TEXT_GREEN"):
+            cls._TC_MAP[T.DARK[key]] = key
+            cls._TC_MAP[T.LIGHT[key]] = key
+            cls._TC_MAP[getattr(T, key)] = key
+        for src in (T.DARK, T.LIGHT):
+            cls._BTN_SET.add(src["BTN_SECONDARY_BG"])
+        cls._BTN_SET.add(T.BTN_SECONDARY_BG)
+
     def _recolor_widgets(self, widget, p: dict):
         """Recursively update fg/bg/text colours for all CTk and tk widgets."""
-        # --- Custom app widgets ---
+        self._ensure_color_maps()
+
         if isinstance(widget, CardFrame):
             try:
                 widget.configure(fg_color=p["BG_CARD"], border_color=p["BORDER_DEFAULT"])
@@ -589,6 +636,7 @@ class ConverterPage(ctk.CTkFrame):
             widget.tag_configure(CodeText.TAG_HEX, foreground=p["TEXT_CODE_HEX"])
             widget.tag_configure(CodeText.TAG_PUNC, foreground=p["TEXT_CODE_PUNC"])
             widget.tag_configure(CodeText.TAG_KW, foreground=p["ACCENT_PURPLE_L"])
+            widget.invalidate_cache()
         elif isinstance(widget, tk.Text) and not isinstance(widget, CodeText):
             try:
                 widget.configure(bg=p["BG_INPUT"], fg=p["TEXT_PRIMARY"],
@@ -597,48 +645,26 @@ class ConverterPage(ctk.CTkFrame):
             except Exception:
                 pass
         elif isinstance(widget, NavItem):
-            # NavItem handles its own colors via set_selected; just update the palette refs
             pass
         elif isinstance(widget, ctk.CTkFrame):
             try:
                 cur = widget.cget("fg_color")
-                # Map old known bg values to their palette key
-                bg_map = {
-                    T.BG_INPUT: "BG_INPUT", T.DARK["BG_INPUT"]: "BG_INPUT",
-                    T.LIGHT.get("BG_INPUT"): "BG_INPUT",
-                    T.BG_CODE: "BG_CODE", T.DARK["BG_CODE"]: "BG_CODE",
-                    T.LIGHT.get("BG_CODE"): "BG_CODE",
-                    T.BG_SIDEBAR: "BG_SIDEBAR", T.DARK["BG_SIDEBAR"]: "BG_SIDEBAR",
-                    T.LIGHT.get("BG_SIDEBAR"): "BG_SIDEBAR",
-                    T.BG_DARKEST: "BG_DARKEST", T.DARK["BG_DARKEST"]: "BG_DARKEST",
-                    T.LIGHT.get("BG_DARKEST"): "BG_DARKEST",
-                }
-                if cur in bg_map:
-                    widget.configure(fg_color=p[bg_map[cur]])
+                key = self._BG_MAP.get(cur)
+                if key:
+                    widget.configure(fg_color=p[key])
             except Exception:
                 pass
         elif isinstance(widget, ctk.CTkLabel):
             try:
-                cur_color = widget.cget("text_color")
-                tc_map = {
-                    T.TEXT_PRIMARY: "TEXT_PRIMARY", T.DARK["TEXT_PRIMARY"]: "TEXT_PRIMARY",
-                    T.LIGHT.get("TEXT_PRIMARY"): "TEXT_PRIMARY",
-                    T.TEXT_SECONDARY: "TEXT_SECONDARY", T.DARK["TEXT_SECONDARY"]: "TEXT_SECONDARY",
-                    T.LIGHT.get("TEXT_SECONDARY"): "TEXT_SECONDARY",
-                    T.TEXT_MUTED: "TEXT_MUTED", T.DARK["TEXT_MUTED"]: "TEXT_MUTED",
-                    T.LIGHT.get("TEXT_MUTED"): "TEXT_MUTED",
-                    T.TEXT_GREEN: "TEXT_GREEN", T.DARK["TEXT_GREEN"]: "TEXT_GREEN",
-                    T.LIGHT.get("TEXT_GREEN"): "TEXT_GREEN",
-                }
-                if cur_color in tc_map:
-                    widget.configure(text_color=p[tc_map[cur_color]])
+                cur = widget.cget("text_color")
+                key = self._TC_MAP.get(cur)
+                if key:
+                    widget.configure(text_color=p[key])
             except Exception:
                 pass
         elif isinstance(widget, ctk.CTkButton):
             try:
-                cur_fg = widget.cget("fg_color")
-                if cur_fg in (T.BTN_SECONDARY_BG, T.DARK["BTN_SECONDARY_BG"],
-                              T.LIGHT.get("BTN_SECONDARY_BG")):
+                if widget.cget("fg_color") in self._BTN_SET:
                     widget.configure(
                         fg_color=p["BTN_SECONDARY_BG"],
                         hover_color=p["BTN_SECONDARY_HOVER"],
