@@ -16,7 +16,7 @@
 
 ## The Problem
 
-If you have ever worked with **non-Latin characters** in a native C/C++ project — Chinese, Arabic, Tamil, Cyrillic, or any other script — you know the frustration.
+If you have ever worked with **non-Latin characters** in a native C/C++ project — Chinese, Arabic, Tamil, Cyrillic, or any other script, you know the frustration.
 
 Every time you need a character, you have to search online to find its Unicode value. Most tools give you something like this:
 
@@ -31,7 +31,7 @@ int codepoints[] = { 0x4f60, 0x597d, 0x4e16, 0x754c };
 int count = 4;
 ```
 
-Reformatting that by hand — every single time — is a hassle that adds up fast.
+Reformatting that by hand, every single time, is a hassle that adds up fast.
 
 **Asking AI?** Sure, but that burns tokens for something that should be instant and free.
 
@@ -47,7 +47,7 @@ This isn't a workaround, it's the only way.
 
 > *"What if there was a small tool that just takes your characters, and spits out a ready-to-use codepoint array with a count; no reformatting, no searching, no AI tokens wasted?"*
 
-That question is what started GlyphAtlas. It was built first for personal use during game development, then polished and shared because this is a problem that affects anyone doing C/C++ work with international text — not just game developers.
+That question is what started GlyphAtlas. It was built first for personal use during game development, then polished and shared because this is a problem that affects anyone doing C/C++ work with international text, not just game developers.
 
 ---
 
@@ -105,21 +105,6 @@ python main.py
 
 ---
 
-## Project Structure
-
-```
-GlyphAtlas/
-├── main.py          # Entry point
-├── app.py           # UI — all pages, sidebar, layout
-├── theme.py         # Design tokens (colors, fonts, spacing)
-├── utils.py         # Unicode logic — extraction, formatting
-├── requirements.txt
-└── assets/
-    └── logo.png
-```
-
----
-
 ## Dependencies
 
 | Package | Purpose |
@@ -134,6 +119,14 @@ GlyphAtlas/
 GlyphAtlas started as a personal tool built out of necessity during game development with raylib. It lived quietly on a local machine for a while before the decision was made to clean it up and release it — because if this problem was frustrating enough to build a tool for, others are likely hitting the same wall.
 
 If it saves you even five minutes of reformatting, it has done its job.
+
+---
+
+## Contributing
+
+With the release of v1.0.0, GlyphAtlas is considered **feature-complete**. To keep the tool lightweight and focused, we are generally not accepting major new features. However, bug fixes, performance improvements, and documentation updates are highly welcome!
+
+Please see [CONTRIBUTIONS.md](CONTRIBUTIONS.md) for more details.
 
 ---
 
