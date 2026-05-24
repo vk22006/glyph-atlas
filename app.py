@@ -20,6 +20,8 @@ from utils import (
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("dark-blue")
 
+_CURRENT_APPEARANCE = "dark"  # module-level tracker
+
 ASSET_DIR = os.path.join(os.path.dirname(__file__), "assets")
 
 
@@ -203,6 +205,7 @@ class ConverterPage(ctk.CTkFrame):
         content.pack(fill="both", expand=True, padx=24)
         content.columnconfigure(0, weight=5, minsize=340)
         content.columnconfigure(1, weight=4, minsize=280)
+        content.rowconfigure(0, weight=1)
 
         # Left column
         left = ctk.CTkFrame(content, fg_color="transparent")
@@ -214,6 +217,9 @@ class ConverterPage(ctk.CTkFrame):
 
         self._build_left(left)
         self._build_right(right)
+
+        # ── Quick Info (full-width, below both columns) ───────────────────────
+        self._build_quick_info(self)
 
     # ── Left column ───────────────────────────────────────────────────────────
     def _build_left(self, parent):
@@ -305,9 +311,11 @@ class ConverterPage(ctk.CTkFrame):
         self._count_code = CodeText(cnt_wrap, height=2)
         self._count_code.pack(fill="x")
 
-        # 4. Quick Info card
+    # ── Quick Info (full-width below columns) ────────────────────────────────
+    def _build_quick_info(self, parent):
         qi_card = CardFrame(parent)
-        qi_card.pack(fill="x", pady=(0, 10))
+        qi_card.pack(fill="x", padx=24, pady=(4, 10))
+        self._qi_card = qi_card
 
         qi_header = ctk.CTkFrame(qi_card, fg_color="transparent")
         qi_header.pack(fill="x", padx=14, pady=(12, 6))
@@ -419,7 +427,7 @@ class ConverterPage(ctk.CTkFrame):
 
         fmt_wrap = ctk.CTkFrame(fmt_card, fg_color=T.BG_CODE, corner_radius=8)
         fmt_wrap.pack(fill="x", padx=14, pady=(8, 14))
-        self._fmt_code = CodeText(fmt_wrap, height=5)
+        self._fmt_code = CodeText(fmt_wrap, height=11)
         self._fmt_code.pack(fill="x")
 
     # ── Event handlers ────────────────────────────────────────────────────────
@@ -510,9 +518,124 @@ class ConverterPage(ctk.CTkFrame):
         self._font_lbl.configure(text=f"Font: {fname}")
 
     def _toggle_theme(self):
-        # Placeholder — dark mode is the primary mode; light would need
-        # a full re-theme pass which is out of scope for now.
-        pass
+        global _CURRENT_APPEARANCE
+        if _CURRENT_APPEARANCE == "dark":
+            _CURRENT_APPEARANCE = "light"
+        else:
+            _CURRENT_APPEARANCE = "dark"
+        self._apply_theme(_CURRENT_APPEARANCE)
+
+    def _apply_theme(self, mode: str):
+        """Walk all widgets and re-apply colours from the chosen palette."""
+        p = T.get_palette(mode)
+        ctk.set_appearance_mode(mode)
+
+        # Update the button label
+        if mode == "light":
+            self._theme_btn.configure(text="☀  Light")
+        else:
+            self._theme_btn.configure(text="🌙  Dark")
+
+        # Update the root app window
+        app = self.winfo_toplevel()
+        app.configure(fg_color=p["BG_DARKEST"])
+
+        # Update sidebar
+        if hasattr(app, "_sidebar"):
+            app._sidebar.configure(fg_color=p["BG_SIDEBAR"], border_color=p["BORDER_DEFAULT"])
+
+        # Update main container
+        if hasattr(app, "_main_container"):
+            app._main_container.configure(fg_color=p["BG_DARKEST"])
+
+        # Update status bar
+        if hasattr(app, "_status_bar"):
+            app._status_bar.configure(fg_color=p["BG_CODE"], border_color=p["BORDER_DEFAULT"])
+
+        # Recursively update all widgets
+        self._recolor_widgets(app, p)
+
+    def _recolor_widgets(self, widget, p: dict):
+        """Recursively update fg/bg/text colours for all CTk and tk widgets."""
+        # --- Custom app widgets ---
+        if isinstance(widget, CardFrame):
+            try:
+                widget.configure(fg_color=p["BG_CARD"], border_color=p["BORDER_DEFAULT"])
+            except Exception:
+                pass
+        elif isinstance(widget, CodeText):
+            widget.configure(bg=p["BG_CODE"], fg=p["TEXT_CODE_BASE"],
+                             insertbackground=p["TEXT_PRIMARY"],
+                             selectbackground=p["ACCENT_PURPLE"])
+            widget.tag_configure(CodeText.TAG_TYPE, foreground=p["TEXT_CODE_TYPE"])
+            widget.tag_configure(CodeText.TAG_HEX, foreground=p["TEXT_CODE_HEX"])
+            widget.tag_configure(CodeText.TAG_PUNC, foreground=p["TEXT_CODE_PUNC"])
+            widget.tag_configure(CodeText.TAG_KW, foreground=p["ACCENT_PURPLE_L"])
+        elif isinstance(widget, tk.Text) and not isinstance(widget, CodeText):
+            try:
+                widget.configure(bg=p["BG_INPUT"], fg=p["TEXT_PRIMARY"],
+                                 insertbackground=p["TEXT_PRIMARY"],
+                                 selectbackground=p["ACCENT_PURPLE"])
+            except Exception:
+                pass
+        elif isinstance(widget, NavItem):
+            # NavItem handles its own colors via set_selected; just update the palette refs
+            pass
+        elif isinstance(widget, ctk.CTkFrame):
+            try:
+                cur = widget.cget("fg_color")
+                # Map old known bg values to their palette key
+                bg_map = {
+                    T.BG_INPUT: "BG_INPUT", T.DARK["BG_INPUT"]: "BG_INPUT",
+                    T.LIGHT.get("BG_INPUT"): "BG_INPUT",
+                    T.BG_CODE: "BG_CODE", T.DARK["BG_CODE"]: "BG_CODE",
+                    T.LIGHT.get("BG_CODE"): "BG_CODE",
+                    T.BG_SIDEBAR: "BG_SIDEBAR", T.DARK["BG_SIDEBAR"]: "BG_SIDEBAR",
+                    T.LIGHT.get("BG_SIDEBAR"): "BG_SIDEBAR",
+                    T.BG_DARKEST: "BG_DARKEST", T.DARK["BG_DARKEST"]: "BG_DARKEST",
+                    T.LIGHT.get("BG_DARKEST"): "BG_DARKEST",
+                }
+                if cur in bg_map:
+                    widget.configure(fg_color=p[bg_map[cur]])
+            except Exception:
+                pass
+        elif isinstance(widget, ctk.CTkLabel):
+            try:
+                cur_color = widget.cget("text_color")
+                tc_map = {
+                    T.TEXT_PRIMARY: "TEXT_PRIMARY", T.DARK["TEXT_PRIMARY"]: "TEXT_PRIMARY",
+                    T.LIGHT.get("TEXT_PRIMARY"): "TEXT_PRIMARY",
+                    T.TEXT_SECONDARY: "TEXT_SECONDARY", T.DARK["TEXT_SECONDARY"]: "TEXT_SECONDARY",
+                    T.LIGHT.get("TEXT_SECONDARY"): "TEXT_SECONDARY",
+                    T.TEXT_MUTED: "TEXT_MUTED", T.DARK["TEXT_MUTED"]: "TEXT_MUTED",
+                    T.LIGHT.get("TEXT_MUTED"): "TEXT_MUTED",
+                    T.TEXT_GREEN: "TEXT_GREEN", T.DARK["TEXT_GREEN"]: "TEXT_GREEN",
+                    T.LIGHT.get("TEXT_GREEN"): "TEXT_GREEN",
+                }
+                if cur_color in tc_map:
+                    widget.configure(text_color=p[tc_map[cur_color]])
+            except Exception:
+                pass
+        elif isinstance(widget, ctk.CTkButton):
+            try:
+                cur_fg = widget.cget("fg_color")
+                if cur_fg in (T.BTN_SECONDARY_BG, T.DARK["BTN_SECONDARY_BG"],
+                              T.LIGHT.get("BTN_SECONDARY_BG")):
+                    widget.configure(
+                        fg_color=p["BTN_SECONDARY_BG"],
+                        hover_color=p["BTN_SECONDARY_HOVER"],
+                        text_color=p["TEXT_SECONDARY"],
+                    )
+            except Exception:
+                pass
+
+        # Recurse into children
+        try:
+            children = widget.winfo_children()
+        except Exception:
+            children = []
+        for child in children:
+            self._recolor_widgets(child, p)
 
 
 # ── Settings page ─────────────────────────────────────────────────────────────
@@ -590,7 +713,7 @@ class GlyphAtlasApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("GlyphAtlas")
-        self.geometry("1080x700")
+        self.geometry("1080x780")
         self.minsize(900, 600)
         self.configure(fg_color=T.BG_DARKEST)
 
@@ -625,6 +748,7 @@ class GlyphAtlasApp(ctk.CTk):
                                width=200)
         sidebar.grid(row=0, column=0, sticky="nsew")
         sidebar.grid_propagate(False)
+        self._sidebar = sidebar
 
         # ── Logo area ─────────────────────────────────────────────────────────
         logo_area = ctk.CTkFrame(sidebar, fg_color="transparent")
@@ -707,6 +831,7 @@ class GlyphAtlasApp(ctk.CTk):
                            height=30, border_width=1, border_color=T.BORDER_DEFAULT)
         bar.grid(row=1, column=0, columnspan=2, sticky="ew")
         bar.grid_propagate(False)
+        self._status_bar = bar
 
         left = ctk.CTkFrame(bar, fg_color="transparent")
         left.pack(side="left", padx=16, fill="y")
