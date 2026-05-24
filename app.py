@@ -101,17 +101,23 @@ class CodeText(tk.Text):
     def get_content(self) -> str:
         return self.get("1.0", "end-1c")
 
+    def invalidate_cache(self):
+        """Force next set_code to update even if text matches."""
+        self._last_code = None
+
 
 # ── Sidebar navigation item ───────────────────────────────────────────────────
 class NavItem(ctk.CTkFrame):
     def __init__(self, master, icon: str, label: str, selected=False, command=None, **kwargs):
         super().__init__(master, fg_color="transparent", corner_radius=8, **kwargs)
+        self._palette = T.DARK
         self._selected = selected
         self._command  = command
         self._icon_chr = icon
         self._label_str = label
 
-        self._bg_frame = ctk.CTkFrame(self, fg_color=T.BG_SELECTED if selected else "transparent",
+        # We use DARK colors for selected state even in light mode
+        self._bg_frame = ctk.CTkFrame(self, fg_color=T.DARK["BG_SELECTED"] if selected else "transparent",
                                       corner_radius=8)
         self._bg_frame.pack(fill="x", padx=6, pady=2)
 
@@ -119,12 +125,12 @@ class NavItem(ctk.CTkFrame):
         inner.pack(fill="x", padx=10, pady=8)
 
         self._icon_lbl = ctk.CTkLabel(inner, text=icon, font=(T.FONT_FAMILY_UI, 15),
-                                      text_color=T.ACCENT_PURPLE_L if selected else T.TEXT_SECONDARY,
+                                      text_color=T.DARK["ACCENT_PURPLE_L"] if selected else T.DARK["TEXT_SECONDARY"],
                                       width=24)
         self._icon_lbl.pack(side="left")
 
         self._text_lbl = ctk.CTkLabel(inner, text=label, font=(T.FONT_FAMILY_UI, T.FONT_BASE, "bold" if selected else "normal"),
-                                      text_color=T.TEXT_PRIMARY if selected else T.TEXT_SECONDARY)
+                                      text_color=T.DARK["TEXT_PRIMARY"] if selected else T.DARK["TEXT_SECONDARY"])
         self._text_lbl.pack(side="left", padx=(8, 0))
 
         # Bind clicks
@@ -133,12 +139,23 @@ class NavItem(ctk.CTkFrame):
             w.bind("<Enter>", self._on_enter)
             w.bind("<Leave>", self._on_leave)
 
+    def update_theme(self, p: dict):
+        self._palette = p
+        self.set_selected(self._selected)
+
     def set_selected(self, val: bool):
         self._selected = val
-        self._bg_frame.configure(fg_color=T.BG_SELECTED if val else "transparent")
-        self._icon_lbl.configure(text_color=T.ACCENT_PURPLE_L if val else T.TEXT_SECONDARY)
-        self._text_lbl.configure(text_color=T.TEXT_PRIMARY if val else T.TEXT_SECONDARY,
-                                 font=(T.FONT_FAMILY_UI, T.FONT_BASE, "bold" if val else "normal"))
+        p = getattr(self, "_palette", T.DARK)
+        if val:
+            self._bg_frame.configure(fg_color=T.DARK["BG_SELECTED"])
+            self._icon_lbl.configure(text_color=T.DARK["ACCENT_PURPLE_L"])
+            self._text_lbl.configure(text_color=T.DARK["TEXT_PRIMARY"],
+                                     font=(T.FONT_FAMILY_UI, T.FONT_BASE, "bold"))
+        else:
+            self._bg_frame.configure(fg_color="transparent")
+            self._icon_lbl.configure(text_color=p["TEXT_SECONDARY"])
+            self._text_lbl.configure(text_color=p["TEXT_SECONDARY"],
+                                     font=(T.FONT_FAMILY_UI, T.FONT_BASE, "normal"))
 
     def _on_click(self, _):
         if self._command:
@@ -146,7 +163,8 @@ class NavItem(ctk.CTkFrame):
 
     def _on_enter(self, _):
         if not self._selected:
-            self._bg_frame.configure(fg_color=T.BG_HOVER)
+            p = getattr(self, "_palette", T.DARK)
+            self._bg_frame.configure(fg_color=p["BG_HOVER"])
 
     def _on_leave(self, _):
         if not self._selected:
@@ -645,7 +663,8 @@ class ConverterPage(ctk.CTkFrame):
             except Exception:
                 pass
         elif isinstance(widget, NavItem):
-            pass
+            widget.update_theme(p)
+            return  # skip children of NavItem
         elif isinstance(widget, ctk.CTkFrame):
             try:
                 cur = widget.cget("fg_color")
@@ -790,8 +809,8 @@ class GlyphAtlasApp(ctk.CTk):
 
         # Window icon
         try:
-            ico = Image.open(asset("logo.png"))
-            self.iconphoto(True, tk.PhotoImage(file=asset("logo.png")))
+            ico = Image.open(asset("icon.png"))
+            self.iconphoto(True, tk.PhotoImage(file=asset("icon.png")))
         except Exception:
             pass
 
@@ -857,30 +876,6 @@ class GlyphAtlasApp(ctk.CTk):
                            command=lambda l=label: self._show_page(l))
             item.pack(fill="x")
             self._nav_items[label] = item
-
-        # ── Bottom user badge ─────────────────────────────────────────────────
-        bottom = ctk.CTkFrame(sidebar, fg_color="transparent")
-        bottom.pack(side="bottom", fill="x", padx=14, pady=14)
-        ctk.CTkFrame(bottom, fg_color=T.BORDER_DEFAULT, height=1).pack(fill="x", pady=(0, 10))
-
-        badge_row = ctk.CTkFrame(bottom, fg_color="transparent")
-        badge_row.pack(fill="x")
-
-        avatar = ctk.CTkLabel(badge_row, text="GA",
-                              font=(T.FONT_FAMILY_UI, 12, "bold"),
-                              text_color=T.TEXT_PRIMARY,
-                              fg_color=T.ACCENT_PURPLE, corner_radius=20,
-                              width=34, height=34)
-        avatar.pack(side="left")
-
-        info = ctk.CTkFrame(badge_row, fg_color="transparent")
-        info.pack(side="left", padx=(8, 0))
-        ctk.CTkLabel(info, text="GlyphAtlas v1.0.0",
-                     font=(T.FONT_FAMILY_UI, 11, "bold"),
-                     text_color=T.TEXT_PRIMARY).pack(anchor="w")
-        ctk.CTkLabel(info, text="Crafted for developers.",
-                     font=(T.FONT_FAMILY_UI, 10),
-                     text_color=T.TEXT_MUTED).pack(anchor="w")
 
     def _build_main_area(self):
         main = ctk.CTkFrame(self, fg_color=T.BG_DARKEST, corner_radius=0)
