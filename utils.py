@@ -17,50 +17,63 @@ def is_non_latin(char: str) -> bool:
     return True
 
 
-def get_codepoints(text: str) -> list[int]:
-    """Return list of Unicode codepoints for all NON-LATIN characters in text."""
+def get_codepoints(text: str, *, include_latin: bool = False) -> list[int]:
+    """Return list of Unicode codepoints for characters in text.
+
+    When *include_latin* is False (default), only non-Latin characters are
+    included.  When True, every character is included.
+    """
+    if include_latin:
+        return [ord(ch) for ch in text if ch.strip() or ord(ch) > 0x20]
     return [ord(ch) for ch in text if is_non_latin(ch)]
 
 
-def format_c_array(codepoints: list[int]) -> str:
+def _fmt_hex(cp: int, *, prefix: bool = True, upper: bool = False) -> str:
+    """Format a single codepoint as a hex string with configurable prefix/case."""
+    fmt = f"{cp:04X}" if upper else f"{cp:04x}"
+    return f"0x{fmt}" if prefix else fmt
+
+
+def format_c_array(codepoints: list[int], *, prefix: bool = True, upper: bool = False) -> str:
     """Format codepoints as a C-style int array."""
     if not codepoints:
         return "int codepoints[] = {};"
-    hex_vals = ", ".join(f"0x{cp:04x}" for cp in codepoints)
+    hex_vals = ", ".join(_fmt_hex(cp, prefix=prefix, upper=upper) for cp in codepoints)
     return f"int codepoints[] = {{\n    {hex_vals}\n}};"
 
 
-def format_cpp_vector(codepoints: list[int]) -> str:
+def format_cpp_vector(codepoints: list[int], *, prefix: bool = True, upper: bool = False) -> str:
     """Format codepoints as a C++ std::vector<int>."""
     if not codepoints:
         return "std::vector<int> codepoints = {};"
-    hex_vals = ", ".join(f"0x{cp:04x}" for cp in codepoints)
+    hex_vals = ", ".join(_fmt_hex(cp, prefix=prefix, upper=upper) for cp in codepoints)
     return f"std::vector<int> codepoints = {{\n    {hex_vals}\n}};"
 
 
-def format_json(codepoints: list[int]) -> str:
+def format_json(codepoints: list[int], *, prefix: bool = True, upper: bool = False) -> str:
     """Format codepoints as JSON array of hex strings."""
     if not codepoints:
         return "[]"
-    items = ", ".join(f'"0x{cp:04x}"' for cp in codepoints)
+    items = ", ".join(f'"{_fmt_hex(cp, prefix=prefix, upper=upper)}"' for cp in codepoints)
     return f"[\n    {items}\n]"
 
 
-def format_space_separated(codepoints: list[int]) -> str:
+def format_space_separated(codepoints: list[int], *, prefix: bool = True, upper: bool = False) -> str:
     """Format codepoints as space-separated hex values."""
-    return " ".join(f"0x{cp:04x}" for cp in codepoints) if codepoints else ""
+    return " ".join(_fmt_hex(cp, prefix=prefix, upper=upper) for cp in codepoints) if codepoints else ""
 
 
-def format_unicode_escape(codepoints: list[int]) -> str:
+def format_unicode_escape(codepoints: list[int], *, upper: bool = False) -> str:
     """Format codepoints as Unicode escape sequences."""
-    return " ".join(f"U+{cp:04X}" for cp in codepoints) if codepoints else ""
+    fmt = "04X" if upper else "04x"
+    return " ".join(f"U+{cp:{fmt}}" for cp in codepoints) if codepoints else ""
 
 
-def count_utf8_bytes(text: str) -> int:
-    """Return UTF-8 byte count for non-latin characters only."""
+def count_utf8_bytes(text: str, *, include_latin: bool = False) -> int:
+    """Return UTF-8 byte count for selected characters."""
     result = 0
     for ch in text:
-        if is_non_latin(ch):
+        if include_latin or is_non_latin(ch):
             result += len(ch.encode("utf-8"))
     return result
 
@@ -92,3 +105,4 @@ def get_common_usage(codepoints: list[int]) -> str:
 
 def format_count_statement(codepoints: list[int]) -> str:
     return f"int count = {len(codepoints)};"
+
