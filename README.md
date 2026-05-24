@@ -126,7 +126,7 @@ If it saves you even five minutes of reformatting, it has done its job.
 
 With the release of v1.0.0, GlyphAtlas is considered **feature-complete**. To keep the tool lightweight and focused, we are generally not accepting major new features. However, bug fixes, performance improvements, and documentation updates are highly welcome!
 
-Please see [CONTRIBUTIONS.md](CONTRIBUTIONS.md) for more details.
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
 
 ---
 
