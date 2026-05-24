@@ -71,7 +71,7 @@ DARK = dict(
 )
 
 LIGHT = dict(
-    BG_DARKEST="#f0f0f5", BG_SIDEBAR="#e8e8f0", BG_CARD="#ffffff",
+    BG_DARKEST="#f0f0f5", BG_SIDEBAR="#dddde8", BG_CARD="#e8e8f0",
     BG_INPUT="#f5f5fa", BG_CODE="#f0f0f8", BG_HOVER="#e0e0eb",
     BG_SELECTED="#d8d0f0", BG_TAB="#eaeaf0", BG_STATUS="#f0f0f5",
     BORDER_DEFAULT="#c8c8d8", BORDER_ACCENT="#8060d0", BORDER_INPUT="#b0b0c8",
