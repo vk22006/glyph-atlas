@@ -431,20 +431,35 @@ class ConverterPage(ctk.CTkFrame):
         self._fmt_code.pack(fill="x")
 
     # ── Event handlers ────────────────────────────────────────────────────────
+    def _get_settings(self) -> tuple[bool, bool, bool]:
+        """Return (include_latin, hex_prefix, uppercase_hex) from settings."""
+        if hasattr(self, "_settings") and self._settings is not None:
+            return (
+                self._settings.include_latin.get(),
+                self._settings.hex_prefix.get(),
+                self._settings.uppercase_hex.get(),
+            )
+        return False, True, False   # defaults
+
     def _on_input_change(self, _event=None):
         text = self._input_text.get("1.0", "end-1c")
-        cps  = get_codepoints(text)
-        nl_chars = [ch for ch in text if is_non_latin(ch)]
+        inc_latin, pfx, upper = self._get_settings()
 
-        # Char count (non-latin only)
-        self._char_count_lbl.configure(text=f"Characters: {len(nl_chars)}")
+        cps = get_codepoints(text, include_latin=inc_latin)
 
-        # Live preview — show only non-latin chars
-        preview = "".join(nl_chars)
-        self._preview_lbl.configure(text=preview)
+        if inc_latin:
+            chars = [ch for ch in text if ch.strip() or ord(ch) > 0x20]
+        else:
+            chars = [ch for ch in text if is_non_latin(ch)]
+
+        # Char count
+        self._char_count_lbl.configure(text=f"Characters: {len(chars)}")
+
+        # Live preview
+        self._preview_lbl.configure(text="".join(chars))
 
         # C array
-        self._array_code.set_code(format_c_array(cps))
+        self._array_code.set_code(format_c_array(cps, prefix=pfx, upper=upper))
 
         # Count
         self._count_code.set_code(format_count_statement(cps))
@@ -454,7 +469,7 @@ class ConverterPage(ctk.CTkFrame):
 
         # Quick info
         n = len(cps)
-        utf8 = count_utf8_bytes(text)
+        utf8 = count_utf8_bytes(text, include_latin=inc_latin)
         first = f"U+{cps[0]:04X}"  if cps else "—"
         last  = f"U+{cps[-1]:04X}" if cps else "—"
         usage = get_common_usage(cps)
@@ -465,15 +480,16 @@ class ConverterPage(ctk.CTkFrame):
         self._qi_usage.set(usage)
 
     def _update_fmt_code(self, cps: list[int]):
+        _, pfx, upper = self._get_settings()
         tab = self._current_tab
         if tab == "C++ Vector":
-            code = format_cpp_vector(cps)
+            code = format_cpp_vector(cps, prefix=pfx, upper=upper)
         elif tab == "JSON":
-            code = format_json(cps)
+            code = format_json(cps, prefix=pfx, upper=upper)
         elif tab == "Space Separated":
-            code = format_space_separated(cps)
+            code = format_space_separated(cps, prefix=pfx, upper=upper)
         else:  # Unicode Escape
-            code = format_unicode_escape(cps)
+            code = format_unicode_escape(cps, upper=upper)
         self._fmt_code.set_code(code)
 
     def _select_tab(self, name: str):
@@ -486,7 +502,8 @@ class ConverterPage(ctk.CTkFrame):
                 font=(T.FONT_FAMILY_UI, T.FONT_SM, "bold" if is_sel else "normal"),
             )
         text = self._input_text.get("1.0", "end-1c")
-        self._update_fmt_code(get_codepoints(text))
+        inc_latin, _, _ = self._get_settings()
+        self._update_fmt_code(get_codepoints(text, include_latin=inc_latin))
 
     def _clear_input(self):
         self._input_text.delete("1.0", "end")
@@ -499,13 +516,14 @@ class ConverterPage(ctk.CTkFrame):
 
     def _copy_all(self):
         text = self._input_text.get("1.0", "end-1c")
-        cps  = get_codepoints(text)
+        inc_latin, pfx, upper = self._get_settings()
+        cps = get_codepoints(text, include_latin=inc_latin)
         all_text = (
-            f"=== C/C++ Array ===\n{format_c_array(cps)}\n\n"
-            f"=== C++ Vector ===\n{format_cpp_vector(cps)}\n\n"
-            f"=== JSON ===\n{format_json(cps)}\n\n"
-            f"=== Space Separated ===\n{format_space_separated(cps)}\n\n"
-            f"=== Unicode Escape ===\n{format_unicode_escape(cps)}\n\n"
+            f"=== C/C++ Array ===\n{format_c_array(cps, prefix=pfx, upper=upper)}\n\n"
+            f"=== C++ Vector ===\n{format_cpp_vector(cps, prefix=pfx, upper=upper)}\n\n"
+            f"=== JSON ===\n{format_json(cps, prefix=pfx, upper=upper)}\n\n"
+            f"=== Space Separated ===\n{format_space_separated(cps, prefix=pfx, upper=upper)}\n\n"
+            f"=== Unicode Escape ===\n{format_unicode_escape(cps, upper=upper)}\n\n"
             f"=== Count ===\n{format_count_statement(cps)}"
         )
         self.clipboard_clear()
@@ -642,6 +660,15 @@ class ConverterPage(ctk.CTkFrame):
 class SettingsPage(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, fg_color="transparent", **kwargs)
+
+        # Shared settings variables
+        self.include_latin = tk.BooleanVar(value=False)
+        self.hex_prefix    = tk.BooleanVar(value=True)
+        self.uppercase_hex = tk.BooleanVar(value=False)
+
+        # Callback that pages can register to be notified of changes
+        self._on_change_cb = None
+
         ctk.CTkLabel(self, text="⚙  Settings",
                      font=(T.FONT_FAMILY_UI, T.FONT_XL, "bold"),
                      text_color=T.TEXT_PRIMARY).pack(anchor="w", padx=24, pady=24)
@@ -650,11 +677,17 @@ class SettingsPage(ctk.CTkFrame):
         card.pack(fill="x", padx=24)
 
         rows = [
-            ("Include Latin characters", "When enabled, Latin printable characters are also converted."),
-            ("Show hex prefix (0x)",     "Prefix hex codepoints with 0x."),
-            ("Uppercase hex",             "Use uppercase hex digits (e.g. 0X4F60 → 0X4F60)."),
+            ("Include Latin characters",
+             "When enabled, Latin printable characters are also converted.",
+             self.include_latin),
+            ("Show hex prefix (0x)",
+             "Prefix hex codepoints with 0x.",
+             self.hex_prefix),
+            ("Uppercase hex",
+             "Use uppercase hex digits (e.g. 0x4f60 → 0x4F60).",
+             self.uppercase_hex),
         ]
-        for i, (title, desc) in enumerate(rows):
+        for i, (title, desc, var) in enumerate(rows):
             row = ctk.CTkFrame(card, fg_color="transparent")
             row.pack(fill="x", padx=14, pady=(12 if i == 0 else 4, 4))
             left = ctk.CTkFrame(row, fg_color="transparent")
@@ -665,11 +698,23 @@ class SettingsPage(ctk.CTkFrame):
             ctk.CTkLabel(left, text=desc,
                          font=(T.FONT_FAMILY_UI, T.FONT_SM),
                          text_color=T.TEXT_MUTED).pack(anchor="w")
-            ctk.CTkSwitch(row, text="", onvalue=True, offvalue=False,
-                          button_color=T.ACCENT_PURPLE, progress_color=T.ACCENT_PURPLE_L
-                          ).pack(side="right", padx=8)
+            switch = ctk.CTkSwitch(
+                row, text="", variable=var,
+                onvalue=True, offvalue=False,
+                button_color=T.ACCENT_PURPLE, progress_color=T.ACCENT_PURPLE_L,
+                command=self._setting_changed,
+            )
+            switch.pack(side="right", padx=8)
 
         ctk.CTkFrame(card, fg_color="transparent", height=12).pack()
+
+    def set_on_change(self, callback):
+        """Register a callback to be called when any setting changes."""
+        self._on_change_cb = callback
+
+    def _setting_changed(self):
+        if self._on_change_cb:
+            self._on_change_cb()
 
 
 # ── About page ────────────────────────────────────────────────────────────────
@@ -822,6 +867,12 @@ class GlyphAtlasApp(ctk.CTk):
         self._pages["Converter"] = ConverterPage(main)
         self._pages["Settings"]  = SettingsPage(main)
         self._pages["About"]     = AboutPage(main)
+
+        # Wire settings → converter
+        converter = self._pages["Converter"]
+        settings  = self._pages["Settings"]
+        converter._settings = settings
+        settings.set_on_change(converter._on_input_change)
 
         for page in self._pages.values():
             page.grid(row=0, column=0, sticky="nsew")
