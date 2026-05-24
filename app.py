@@ -23,11 +23,13 @@ ctk.set_default_color_theme("dark-blue")
 
 _CURRENT_APPEARANCE = "dark"  # module-level tracker
 
-ASSET_DIR = os.path.join(os.path.dirname(__file__), "assets")
-
-
 def asset(name: str) -> str:
-    return os.path.join(ASSET_DIR, name)
+    # Handle PyInstaller's temp folder path for bundled assets
+    if hasattr(sys, '_MEIPASS'):
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.dirname(__file__)
+    return os.path.join(base_path, "assets", name)
 
 
 # ── Reusable card frame ───────────────────────────────────────────────────────
@@ -809,8 +811,7 @@ class GlyphAtlasApp(ctk.CTk):
 
         # Window icon
         try:
-            ico = Image.open(asset("icon.png"))
-            self.iconphoto(True, tk.PhotoImage(file=asset("icon.png")))
+            self.iconbitmap(asset("icon.ico"))
         except Exception:
             pass
 
