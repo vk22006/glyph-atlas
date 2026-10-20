@@ -235,6 +235,9 @@ int main(int argc, char **argv) {
 
     // Callbacks
     app->on_input_changed([weak_app, controller](slint::SharedString text) {
+        if (controller->input_text == text.data()) {
+            return;
+        }
         if (auto locked_app = weak_app.lock()) {
             controller->input_text = text.data();
             controller->update_all(**locked_app);
