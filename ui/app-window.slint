@@ -46,7 +46,7 @@ component SecondaryButton inherits Rectangle {
     in-out property <string> text: "";
     in-out property <length> custom-font-size: 11px;
     in-out property <length> custom-height: 26px;
-    in-out property <length> custom-icon-size: 12px;
+    in-out property <length> custom-icon-size: 15px;
     callback clicked();
 
     height: root.custom-height;
@@ -61,14 +61,19 @@ component SecondaryButton inherits Rectangle {
     HorizontalLayout {
         padding-left: 10px;
         padding-right: 10px;
-        spacing: 6px;
+        spacing: 7px;
         alignment: center;
-        if root.icon.width > 0 : Image {
-            source: root.icon;
+        cross-axis-alignment: center;
+        if root.icon.width > 0 : Rectangle {
             width: root.custom-icon-size;
             height: root.custom-icon-size;
-            colorize: Theme.text_secondary;
-            vertical-alignment: center;
+            Image {
+                width: 100%;
+                height: 100%;
+                source: root.icon;
+                image-fit: contain;
+                colorize: Theme.text_secondary;
+            }
         }
         Text {
             text: root.text;
@@ -88,7 +93,7 @@ component PrimaryButton inherits Rectangle {
     in-out property <image> icon;
     in-out property <string> text: "";
     in-out property <length> custom-height: 32px;
-    in-out property <length> custom-icon-size: 14px;
+    in-out property <length> custom-icon-size: 16px;
     callback clicked();
 
     height: root.custom-height;
@@ -101,14 +106,19 @@ component PrimaryButton inherits Rectangle {
     HorizontalLayout {
         padding-left: 14px;
         padding-right: 14px;
-        spacing: 6px;
+        spacing: 7px;
         alignment: center;
-        if root.icon.width > 0 : Image {
-            source: root.icon;
+        cross-axis-alignment: center;
+        if root.icon.width > 0 : Rectangle {
             width: root.custom-icon-size;
             height: root.custom-icon-size;
-            colorize: #ffffff;
-            vertical-alignment: center;
+            Image {
+                width: 100%;
+                height: 100%;
+                source: root.icon;
+                image-fit: contain;
+                colorize: #ffffff;
+            }
         }
         Text {
             text: root.text;
@@ -166,15 +176,20 @@ component NavItem inherits Rectangle {
     HorizontalLayout {
         padding-left: 14px;
         padding-right: 14px;
-        spacing: 10px;
+        spacing: 12px;
         alignment: start;
+        cross-axis-alignment: center;
 
-        Image {
-            source: root.icon;
-            width: 16px;
-            height: 16px;
-            colorize: root.selected ? Theme.text_accent : Theme.text_secondary;
-            vertical-alignment: center;
+        Rectangle {
+            width: 18px;
+            height: 18px;
+            Image {
+                width: 100%;
+                height: 100%;
+                source: root.icon;
+                image-fit: contain;
+                colorize: root.selected ? Theme.text_accent : Theme.text_secondary;
+            }
         }
 
         Text {
@@ -216,8 +231,9 @@ component QuickInfoTile inherits Rectangle {
             alignment: start;
             Image {
                 source: root.icon;
-                width: 12px;
-                height: 12px;
+                width: 15px;
+                height: 15px;
+                image-fit: contain;
                 colorize: root.icon-color;
                 vertical-alignment: center;
             }
@@ -386,6 +402,7 @@ export component AppWindow inherits Window {
                     HorizontalLayout {
                         vertical-stretch: 0;
                         alignment: space-between;
+                        cross-axis-alignment: center;
                         VerticalLayout {
                             spacing: 3px;
                             Text {
@@ -404,12 +421,13 @@ export component AppWindow inherits Window {
                         HorizontalLayout {
                             spacing: 8px;
                             alignment: center;
+                            cross-axis-alignment: center;
                             SecondaryButton {
                                 icon: Theme.is_dark ? @image-url("../assets/icons/moon.svg") : @image-url("../assets/icons/sun.svg");
                                 text: Theme.is_dark ? "Dark" : "Light";
                                 custom-font-size: 12px;
                                 custom-height: 32px;
-                                custom-icon-size: 14px;
+                                custom-icon-size: 16px;
                                 clicked => {
                                     Theme.is_dark = !Theme.is_dark;
                                     root.toggle_theme();
@@ -419,7 +437,7 @@ export component AppWindow inherits Window {
                                 icon: @image-url("../assets/icons/copy.svg");
                                 text: "Copy All";
                                 custom-height: 32px;
-                                custom-icon-size: 14px;
+                                custom-icon-size: 16px;
                                 clicked => { root.copy_all(); }
                             }
                         }
@@ -448,12 +466,13 @@ export component AppWindow inherits Window {
                                     spacing: 8px;
 
                                     HorizontalLayout {
-                                        spacing: 6px;
+                                        spacing: 8px;
                                         alignment: start;
                                         Image {
                                             source: @image-url("../assets/icons/arrow-left-right.svg");
-                                            width: 13px;
-                                            height: 13px;
+                                            width: 18px;
+                                            height: 18px;
+                                            image-fit: contain;
                                             colorize: Theme.text_secondary;
                                             vertical-alignment: center;
                                         }
@@ -504,7 +523,7 @@ export component AppWindow inherits Window {
                                             icon: @image-url("../assets/icons/trash-2.svg");
                                             text: "Clear";
                                             custom-height: 26px;
-                                            custom-icon-size: 12px;
+                                            custom-icon-size: 15px;
                                             clicked => {
                                                 input_elem.text = "";
                                                 root.input_text = "";
@@ -532,12 +551,13 @@ export component AppWindow inherits Window {
                                         vertical-stretch: 0;
                                         alignment: space-between;
                                         HorizontalLayout {
-                                            spacing: 6px;
+                                            spacing: 8px;
                                             alignment: start;
                                             Image {
                                                 source: @image-url("../assets/icons/braces.svg");
-                                                width: 13px;
-                                                height: 13px;
+                                                width: 18px;
+                                                height: 18px;
+                                                image-fit: contain;
                                                 colorize: Theme.text_secondary;
                                                 vertical-alignment: center;
                                             }
@@ -552,8 +572,8 @@ export component AppWindow inherits Window {
                                         SecondaryButton {
                                             icon: @image-url("../assets/icons/copy.svg");
                                             text: "Copy";
-                                            custom-height: 24px;
-                                            custom-icon-size: 11px;
+                                            custom-height: 26px;
+                                            custom-icon-size: 15px;
                                             clicked => { root.copy_c_array(); }
                                         }
                                     }
@@ -640,12 +660,13 @@ export component AppWindow inherits Window {
                                         vertical-stretch: 0;
                                         alignment: space-between;
                                         HorizontalLayout {
-                                            spacing: 6px;
+                                            spacing: 8px;
                                             alignment: start;
                                             Image {
                                                 source: @image-url("../assets/icons/hash.svg");
-                                                width: 13px;
-                                                height: 13px;
+                                                width: 18px;
+                                                height: 18px;
+                                                image-fit: contain;
                                                 colorize: Theme.text_secondary;
                                                 vertical-alignment: center;
                                             }
@@ -660,8 +681,8 @@ export component AppWindow inherits Window {
                                         SecondaryButton {
                                             icon: @image-url("../assets/icons/copy.svg");
                                             text: "Copy";
-                                            custom-height: 24px;
-                                            custom-icon-size: 11px;
+                                            custom-height: 26px;
+                                            custom-icon-size: 15px;
                                             clicked => { root.copy_count(); }
                                         }
                                     }
@@ -734,12 +755,13 @@ export component AppWindow inherits Window {
                                     spacing: 8px;
 
                                     HorizontalLayout {
-                                        spacing: 6px;
+                                        spacing: 8px;
                                         alignment: start;
                                         Image {
                                             source: @image-url("../assets/icons/eye.svg");
-                                            width: 13px;
-                                            height: 13px;
+                                            width: 18px;
+                                            height: 18px;
+                                            image-fit: contain;
                                             colorize: Theme.text_secondary;
                                             vertical-alignment: center;
                                         }
@@ -786,7 +808,7 @@ export component AppWindow inherits Window {
                                             icon: @image-url("../assets/icons/type.svg");
                                             text: "Change Font";
                                             custom-height: 26px;
-                                            custom-icon-size: 12px;
+                                            custom-icon-size: 15px;
                                             clicked => { root.change_font(); }
                                         }
                                     }
@@ -810,12 +832,13 @@ export component AppWindow inherits Window {
                                         vertical-stretch: 0;
                                         alignment: space-between;
                                         HorizontalLayout {
-                                            spacing: 6px;
+                                            spacing: 8px;
                                             alignment: start;
                                             Image {
                                                 source: @image-url("../assets/icons/braces.svg");
-                                                width: 13px;
-                                                height: 13px;
+                                                width: 18px;
+                                                height: 18px;
+                                                image-fit: contain;
                                                 colorize: Theme.text_secondary;
                                                 vertical-alignment: center;
                                             }
@@ -830,8 +853,8 @@ export component AppWindow inherits Window {
                                         SecondaryButton {
                                             icon: @image-url("../assets/icons/copy.svg");
                                             text: "Copy";
-                                            custom-height: 24px;
-                                            custom-icon-size: 11px;
+                                            custom-height: 26px;
+                                            custom-icon-size: 15px;
                                             clicked => { root.copy_other_format(); }
                                         }
                                     }
@@ -1008,12 +1031,13 @@ export component AppWindow inherits Window {
                             spacing: 8px;
 
                             HorizontalLayout {
-                                spacing: 6px;
+                                spacing: 8px;
                                 alignment: start;
                                 Image {
                                     source: @image-url("../assets/icons/info.svg");
-                                    width: 13px;
-                                    height: 13px;
+                                    width: 18px;
+                                    height: 18px;
+                                    image-fit: contain;
                                     colorize: Theme.text_secondary;
                                     vertical-alignment: center;
                                 }
@@ -1085,8 +1109,9 @@ export component AppWindow inherits Window {
                         alignment: start;
                         Image {
                             source: @image-url("../assets/icons/settings.svg");
-                            width: 22px;
-                            height: 22px;
+                            width: 20px;
+                            height: 20px;
+                            image-fit: contain;
                             colorize: Theme.text_primary;
                             vertical-alignment: center;
                         }
@@ -1210,8 +1235,9 @@ export component AppWindow inherits Window {
                         alignment: start;
                         Image {
                             source: @image-url("../assets/icons/info.svg");
-                            width: 22px;
-                            height: 22px;
+                            width: 20px;
+                            height: 20px;
+                            image-fit: contain;
                             colorize: Theme.text_primary;
                             vertical-alignment: center;
                         }
@@ -1332,8 +1358,9 @@ export component AppWindow inherits Window {
                     }
                     Image {
                         source: @image-url("../assets/icons/check-circle.svg");
-                        width: 13px;
-                        height: 13px;
+                        width: 15px;
+                        height: 15px;
+                        image-fit: contain;
                         colorize: Theme.text_green;
                         vertical-alignment: center;
                     }
