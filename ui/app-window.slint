@@ -217,7 +217,7 @@ component QuickInfoTile inherits Rectangle {
     border-width: 1px;
     border-color: Theme.border_default;
     vertical-stretch: 0;
-    height: 56px;
+    height: 58px;
 
     VerticalLayout {
         padding-left: 12px;
@@ -229,13 +229,17 @@ component QuickInfoTile inherits Rectangle {
         HorizontalLayout {
             spacing: 6px;
             alignment: start;
-            Image {
-                source: root.icon;
-                width: 15px;
-                height: 15px;
-                image-fit: contain;
-                colorize: root.icon-color;
-                vertical-alignment: center;
+            cross-axis-alignment: center;
+            Rectangle {
+                width: 14px;
+                height: 14px;
+                Image {
+                    width: 100%;
+                    height: 100%;
+                    source: root.icon;
+                    image-fit: contain;
+                    colorize: root.icon-color;
+                }
             }
             Text {
                 text: root.label;
@@ -394,9 +398,9 @@ export component AppWindow inherits Window {
                     VerticalLayout {
                         padding-left: 24px;
                         padding-right: 24px;
-                    padding-top: 18px;
-                    padding-bottom: 14px;
-                    spacing: 12px;
+                        padding-top: 20px;
+                        padding-bottom: 16px;
+                        spacing: 16px;
 
                     // Header row
                     HorizontalLayout {
@@ -446,12 +450,12 @@ export component AppWindow inherits Window {
                     // 2-Column Section
                     HorizontalLayout {
                         vertical-stretch: 0;
-                        spacing: 12px;
+                        spacing: 16px;
 
                         // Left Column
                         VerticalLayout {
                             horizontal-stretch: 1;
-                            spacing: 10px;
+                            spacing: 14px;
 
                             // Card 1: Input Text
                             Rectangle {
@@ -462,12 +466,13 @@ export component AppWindow inherits Window {
                                 vertical-stretch: 0;
 
                                 VerticalLayout {
-                                    padding: 12px;
-                                    spacing: 8px;
+                                    padding: 14px;
+                                    spacing: 10px;
 
                                     HorizontalLayout {
                                         spacing: 8px;
                                         alignment: start;
+                                        cross-axis-alignment: center;
                                         Image {
                                             source: @image-url("../assets/icons/arrow-left-right.svg");
                                             width: 18px;
@@ -543,16 +548,18 @@ export component AppWindow inherits Window {
                                 vertical-stretch: 0;
 
                                 VerticalLayout {
-                                    padding: 12px;
-                                    spacing: 8px;
+                                    padding: 14px;
+                                    spacing: 10px;
 
                                     HorizontalLayout {
                                         height: 26px;
                                         vertical-stretch: 0;
                                         alignment: space-between;
+                                        cross-axis-alignment: center;
                                         HorizontalLayout {
                                             spacing: 8px;
                                             alignment: start;
+                                            cross-axis-alignment: center;
                                             Image {
                                                 source: @image-url("../assets/icons/braces.svg");
                                                 width: 18px;
@@ -652,16 +659,18 @@ export component AppWindow inherits Window {
                                 vertical-stretch: 0;
 
                                 VerticalLayout {
-                                    padding: 12px;
-                                    spacing: 8px;
+                                    padding: 14px;
+                                    spacing: 10px;
 
                                     HorizontalLayout {
                                         height: 26px;
                                         vertical-stretch: 0;
                                         alignment: space-between;
+                                        cross-axis-alignment: center;
                                         HorizontalLayout {
                                             spacing: 8px;
                                             alignment: start;
+                                            cross-axis-alignment: center;
                                             Image {
                                                 source: @image-url("../assets/icons/hash.svg");
                                                 width: 18px;
@@ -740,7 +749,7 @@ export component AppWindow inherits Window {
                         // Right Column
                         VerticalLayout {
                             horizontal-stretch: 1;
-                            spacing: 10px;
+                            spacing: 14px;
 
                             // Card 1: Live Preview
                             Rectangle {
@@ -751,12 +760,13 @@ export component AppWindow inherits Window {
                                 vertical-stretch: 0;
 
                                 VerticalLayout {
-                                    padding: 12px;
-                                    spacing: 8px;
+                                    padding: 14px;
+                                    spacing: 10px;
 
                                     HorizontalLayout {
                                         spacing: 8px;
                                         alignment: start;
+                                        cross-axis-alignment: center;
                                         Image {
                                             source: @image-url("../assets/icons/eye.svg");
                                             width: 18px;
@@ -824,16 +834,18 @@ export component AppWindow inherits Window {
                                 vertical-stretch: 0;
 
                                 VerticalLayout {
-                                    padding: 12px;
-                                    spacing: 8px;
+                                    padding: 14px;
+                                    spacing: 10px;
 
                                     HorizontalLayout {
                                         height: 26px;
                                         vertical-stretch: 0;
                                         alignment: space-between;
+                                        cross-axis-alignment: center;
                                         HorizontalLayout {
                                             spacing: 8px;
                                             alignment: start;
+                                            cross-axis-alignment: center;
                                             Image {
                                                 source: @image-url("../assets/icons/braces.svg");
                                                 width: 18px;
@@ -1027,12 +1039,13 @@ export component AppWindow inherits Window {
                         vertical-stretch: 0;
 
                         VerticalLayout {
-                            padding: 12px;
-                            spacing: 8px;
+                            padding: 14px;
+                            spacing: 10px;
 
                             HorizontalLayout {
                                 spacing: 8px;
                                 alignment: start;
+                                cross-axis-alignment: center;
                                 Image {
                                     source: @image-url("../assets/icons/info.svg");
                                     width: 18px;
@@ -1051,7 +1064,7 @@ export component AppWindow inherits Window {
                             }
 
                             HorizontalLayout {
-                                spacing: 8px;
+                                spacing: 10px;
                                 QuickInfoTile {
                                     horizontal-stretch: 1;
                                     icon: @image-url("../assets/icons/hash.svg");
@@ -1315,16 +1328,17 @@ export component AppWindow inherits Window {
                 padding-left: 14px;
                 padding-right: 14px;
                 alignment: space-between;
+                cross-axis-alignment: center;
 
                 HorizontalLayout {
                     spacing: 6px;
                     alignment: start;
+                    cross-axis-alignment: center;
                     Rectangle {
                         width: 7px;
                         height: 7px;
                         border-radius: 3.5px;
                         background: Theme.text_green;
-                        y: (parent.height - self.height) / 2;
                     }
                     Text {
                         text: "Ready to convert";
@@ -1337,6 +1351,7 @@ export component AppWindow inherits Window {
                 HorizontalLayout {
                     spacing: 6px;
                     alignment: end;
+                    cross-axis-alignment: center;
                     Text {
                         text: "UTF-8";
                         font-size: 11px;
@@ -1348,7 +1363,6 @@ export component AppWindow inherits Window {
                         height: 4px;
                         border-radius: 2px;
                         background: Theme.text_muted;
-                        y: (parent.height - self.height) / 2;
                     }
                     Text {
                         text: "No errors";
@@ -1356,13 +1370,16 @@ export component AppWindow inherits Window {
                         color: Theme.text_muted;
                         vertical-alignment: center;
                     }
-                    Image {
-                        source: @image-url("../assets/icons/check-circle.svg");
-                        width: 15px;
-                        height: 15px;
-                        image-fit: contain;
-                        colorize: Theme.text_green;
-                        vertical-alignment: center;
+                    Rectangle {
+                        width: 14px;
+                        height: 14px;
+                        Image {
+                            width: 100%;
+                            height: 100%;
+                            source: @image-url("../assets/icons/check-circle.svg");
+                            image-fit: contain;
+                            colorize: Theme.text_green;
+                        }
                     }
                 }
             }
