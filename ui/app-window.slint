@@ -42,9 +42,11 @@ export global Theme {
 }
 
 component SecondaryButton inherits Rectangle {
+    in-out property <image> icon;
     in-out property <string> text: "";
     in-out property <length> custom-font-size: 11px;
     in-out property <length> custom-height: 26px;
+    in-out property <length> custom-icon-size: 12px;
     callback clicked();
 
     height: root.custom-height;
@@ -59,7 +61,15 @@ component SecondaryButton inherits Rectangle {
     HorizontalLayout {
         padding-left: 10px;
         padding-right: 10px;
+        spacing: 6px;
         alignment: center;
+        if root.icon.width > 0 : Image {
+            source: root.icon;
+            width: root.custom-icon-size;
+            height: root.custom-icon-size;
+            colorize: Theme.text_secondary;
+            vertical-alignment: center;
+        }
         Text {
             text: root.text;
             color: Theme.text_secondary;
@@ -75,8 +85,10 @@ component SecondaryButton inherits Rectangle {
 }
 
 component PrimaryButton inherits Rectangle {
+    in-out property <image> icon;
     in-out property <string> text: "";
     in-out property <length> custom-height: 32px;
+    in-out property <length> custom-icon-size: 14px;
     callback clicked();
 
     height: root.custom-height;
@@ -89,7 +101,15 @@ component PrimaryButton inherits Rectangle {
     HorizontalLayout {
         padding-left: 14px;
         padding-right: 14px;
+        spacing: 6px;
         alignment: center;
+        if root.icon.width > 0 : Image {
+            source: root.icon;
+            width: root.custom-icon-size;
+            height: root.custom-icon-size;
+            colorize: #ffffff;
+            vertical-alignment: center;
+        }
         Text {
             text: root.text;
             color: #ffffff;
@@ -133,7 +153,7 @@ component ToggleSwitch inherits Rectangle {
 }
 
 component NavItem inherits Rectangle {
-    in-out property <string> icon: "";
+    in-out property <image> icon;
     in-out property <string> label: "";
     in-out property <bool> selected: false;
     callback clicked();
@@ -149,11 +169,11 @@ component NavItem inherits Rectangle {
         spacing: 10px;
         alignment: start;
 
-        Text {
-            text: root.icon;
-            font-size: 14px;
-            font-weight: 600;
-            color: root.selected ? Theme.text_accent : Theme.text_secondary;
+        Image {
+            source: root.icon;
+            width: 16px;
+            height: 16px;
+            colorize: root.selected ? Theme.text_accent : Theme.text_secondary;
             vertical-alignment: center;
         }
 
@@ -172,7 +192,7 @@ component NavItem inherits Rectangle {
 }
 
 component QuickInfoTile inherits Rectangle {
-    in-out property <string> icon: "";
+    in-out property <image> icon;
     in-out property <color> icon-color: Theme.text_accent;
     in-out property <string> label: "";
     in-out property <string> value: "";
@@ -194,16 +214,18 @@ component QuickInfoTile inherits Rectangle {
         HorizontalLayout {
             spacing: 6px;
             alignment: start;
-            Text {
-                text: root.icon;
-                font-size: 11px;
-                color: root.icon-color;
-                font-weight: 700;
+            Image {
+                source: root.icon;
+                width: 12px;
+                height: 12px;
+                colorize: root.icon-color;
+                vertical-alignment: center;
             }
             Text {
                 text: root.label;
                 font-size: 11px;
                 color: Theme.text_muted;
+                vertical-alignment: center;
             }
         }
 
@@ -322,21 +344,21 @@ export component AppWindow inherits Window {
 
                     // Navigation buttons
                     NavItem {
-                        icon: "</>";
+                        icon: @image-url("../assets/icons/code-2.svg");
                         label: "Converter";
                         selected: root.current_page == 0;
                         clicked => { root.current_page = 0; }
                     }
 
                     NavItem {
-                        icon: "⚙";
+                        icon: @image-url("../assets/icons/settings.svg");
                         label: "Settings";
                         selected: root.current_page == 1;
                         clicked => { root.current_page = 1; }
                     }
 
                     NavItem {
-                        icon: "ⓘ";
+                        icon: @image-url("../assets/icons/info.svg");
                         label: "About";
                         selected: root.current_page == 2;
                         clicked => { root.current_page = 2; }
@@ -383,17 +405,21 @@ export component AppWindow inherits Window {
                             spacing: 8px;
                             alignment: center;
                             SecondaryButton {
-                                text: Theme.is_dark ? "🌙  Dark" : "☀  Light";
+                                icon: Theme.is_dark ? @image-url("../assets/icons/moon.svg") : @image-url("../assets/icons/sun.svg");
+                                text: Theme.is_dark ? "Dark" : "Light";
                                 custom-font-size: 12px;
                                 custom-height: 32px;
+                                custom-icon-size: 14px;
                                 clicked => {
                                     Theme.is_dark = !Theme.is_dark;
                                     root.toggle_theme();
                                 }
                             }
                             PrimaryButton {
-                                text: "⧉  Copy All";
+                                icon: @image-url("../assets/icons/copy.svg");
+                                text: "Copy All";
                                 custom-height: 32px;
+                                custom-icon-size: 14px;
                                 clicked => { root.copy_all(); }
                             }
                         }
@@ -421,11 +447,23 @@ export component AppWindow inherits Window {
                                     padding: 12px;
                                     spacing: 8px;
 
-                                    Text {
-                                        text: "⇄  1. Input Text";
-                                        font-size: 12px;
-                                        font-weight: 700;
-                                        color: Theme.text_secondary;
+                                    HorizontalLayout {
+                                        spacing: 6px;
+                                        alignment: start;
+                                        Image {
+                                            source: @image-url("../assets/icons/arrow-left-right.svg");
+                                            width: 13px;
+                                            height: 13px;
+                                            colorize: Theme.text_secondary;
+                                            vertical-alignment: center;
+                                        }
+                                        Text {
+                                            text: "1. Input Text";
+                                            font-size: 12px;
+                                            font-weight: 700;
+                                            color: Theme.text_secondary;
+                                            vertical-alignment: center;
+                                        }
                                     }
 
                                     Rectangle {
@@ -463,8 +501,10 @@ export component AppWindow inherits Window {
                                             vertical-alignment: center;
                                         }
                                         SecondaryButton {
-                                            text: "🗑  Clear";
+                                            icon: @image-url("../assets/icons/trash-2.svg");
+                                            text: "Clear";
                                             custom-height: 26px;
+                                            custom-icon-size: 12px;
                                             clicked => {
                                                 input_elem.text = "";
                                                 root.input_text = "";
@@ -491,16 +531,29 @@ export component AppWindow inherits Window {
                                         height: 26px;
                                         vertical-stretch: 0;
                                         alignment: space-between;
-                                        Text {
-                                            text: "▦  2. Codepoint Array (C/C++)";
-                                            font-size: 12px;
-                                            font-weight: 700;
-                                            color: Theme.text_secondary;
-                                            vertical-alignment: center;
+                                        HorizontalLayout {
+                                            spacing: 6px;
+                                            alignment: start;
+                                            Image {
+                                                source: @image-url("../assets/icons/braces.svg");
+                                                width: 13px;
+                                                height: 13px;
+                                                colorize: Theme.text_secondary;
+                                                vertical-alignment: center;
+                                            }
+                                            Text {
+                                                text: "2. Codepoint Array (C/C++)";
+                                                font-size: 12px;
+                                                font-weight: 700;
+                                                color: Theme.text_secondary;
+                                                vertical-alignment: center;
+                                            }
                                         }
                                         SecondaryButton {
-                                            text: "⧉  Copy";
+                                            icon: @image-url("../assets/icons/copy.svg");
+                                            text: "Copy";
                                             custom-height: 24px;
+                                            custom-icon-size: 11px;
                                             clicked => { root.copy_c_array(); }
                                         }
                                     }
@@ -586,16 +639,29 @@ export component AppWindow inherits Window {
                                         height: 26px;
                                         vertical-stretch: 0;
                                         alignment: space-between;
-                                        Text {
-                                            text: "#  Codepoint Count";
-                                            font-size: 12px;
-                                            font-weight: 700;
-                                            color: Theme.text_secondary;
-                                            vertical-alignment: center;
+                                        HorizontalLayout {
+                                            spacing: 6px;
+                                            alignment: start;
+                                            Image {
+                                                source: @image-url("../assets/icons/hash.svg");
+                                                width: 13px;
+                                                height: 13px;
+                                                colorize: Theme.text_secondary;
+                                                vertical-alignment: center;
+                                            }
+                                            Text {
+                                                text: "Codepoint Count";
+                                                font-size: 12px;
+                                                font-weight: 700;
+                                                color: Theme.text_secondary;
+                                                vertical-alignment: center;
+                                            }
                                         }
                                         SecondaryButton {
-                                            text: "⧉  Copy";
+                                            icon: @image-url("../assets/icons/copy.svg");
+                                            text: "Copy";
                                             custom-height: 24px;
+                                            custom-icon-size: 11px;
                                             clicked => { root.copy_count(); }
                                         }
                                     }
@@ -667,12 +733,23 @@ export component AppWindow inherits Window {
                                     padding: 12px;
                                     spacing: 8px;
 
-                                    Text {
-                                        text: "👁  Live Preview";
-                                        font-size: 12px;
-                                        font-weight: 700;
-                                        color: Theme.text_secondary;
-                                        vertical-alignment: center;
+                                    HorizontalLayout {
+                                        spacing: 6px;
+                                        alignment: start;
+                                        Image {
+                                            source: @image-url("../assets/icons/eye.svg");
+                                            width: 13px;
+                                            height: 13px;
+                                            colorize: Theme.text_secondary;
+                                            vertical-alignment: center;
+                                        }
+                                        Text {
+                                            text: "Live Preview";
+                                            font-size: 12px;
+                                            font-weight: 700;
+                                            color: Theme.text_secondary;
+                                            vertical-alignment: center;
+                                        }
                                     }
 
                                     Rectangle {
@@ -706,8 +783,10 @@ export component AppWindow inherits Window {
                                             vertical-alignment: center;
                                         }
                                         SecondaryButton {
-                                            text: "T  Change Font";
+                                            icon: @image-url("../assets/icons/type.svg");
+                                            text: "Change Font";
                                             custom-height: 26px;
+                                            custom-icon-size: 12px;
                                             clicked => { root.change_font(); }
                                         }
                                     }
@@ -730,16 +809,29 @@ export component AppWindow inherits Window {
                                         height: 26px;
                                         vertical-stretch: 0;
                                         alignment: space-between;
-                                        Text {
-                                            text: "⬚  3. Other Formats";
-                                            font-size: 12px;
-                                            font-weight: 700;
-                                            color: Theme.text_secondary;
-                                            vertical-alignment: center;
+                                        HorizontalLayout {
+                                            spacing: 6px;
+                                            alignment: start;
+                                            Image {
+                                                source: @image-url("../assets/icons/braces.svg");
+                                                width: 13px;
+                                                height: 13px;
+                                                colorize: Theme.text_secondary;
+                                                vertical-alignment: center;
+                                            }
+                                            Text {
+                                                text: "3. Other Formats";
+                                                font-size: 12px;
+                                                font-weight: 700;
+                                                color: Theme.text_secondary;
+                                                vertical-alignment: center;
+                                            }
                                         }
                                         SecondaryButton {
-                                            text: "⧉  Copy";
+                                            icon: @image-url("../assets/icons/copy.svg");
+                                            text: "Copy";
                                             custom-height: 24px;
+                                            custom-icon-size: 11px;
                                             clicked => { root.copy_other_format(); }
                                         }
                                     }
@@ -915,46 +1007,58 @@ export component AppWindow inherits Window {
                             padding: 12px;
                             spacing: 8px;
 
-                            Text {
-                                text: "ⓘ  Quick Info";
-                                font-size: 12px;
-                                font-weight: 700;
-                                color: Theme.text_secondary;
+                            HorizontalLayout {
+                                spacing: 6px;
+                                alignment: start;
+                                Image {
+                                    source: @image-url("../assets/icons/info.svg");
+                                    width: 13px;
+                                    height: 13px;
+                                    colorize: Theme.text_secondary;
+                                    vertical-alignment: center;
+                                }
+                                Text {
+                                    text: "Quick Info";
+                                    font-size: 12px;
+                                    font-weight: 700;
+                                    color: Theme.text_secondary;
+                                    vertical-alignment: center;
+                                }
                             }
 
                             HorizontalLayout {
                                 spacing: 8px;
                                 QuickInfoTile {
                                     horizontal-stretch: 1;
-                                    icon: "#";
+                                    icon: @image-url("../assets/icons/hash.svg");
                                     icon-color: Theme.text_accent;
                                     label: "Decimal Count";
                                     value: root.qi_decimal;
                                 }
                                 QuickInfoTile {
                                     horizontal-stretch: 1;
-                                    icon: "A";
+                                    icon: @image-url("../assets/icons/binary.svg");
                                     icon-color: Theme.text_blue;
                                     label: "UTF-8 Bytes";
                                     value: root.qi_utf8;
                                 }
                                 QuickInfoTile {
                                     horizontal-stretch: 1;
-                                    icon: "</>";
+                                    icon: @image-url("../assets/icons/code.svg");
                                     icon-color: Theme.text_green;
                                     label: "First Codepoint";
                                     value: root.qi_first;
                                 }
                                 QuickInfoTile {
                                     horizontal-stretch: 1;
-                                    icon: "</>";
+                                    icon: @image-url("../assets/icons/code.svg");
                                     icon-color: Theme.text_green;
                                     label: "Last Codepoint";
                                     value: root.qi_last;
                                 }
                                 QuickInfoTile {
                                     horizontal-stretch: 1;
-                                    icon: "★";
+                                    icon: @image-url("../assets/icons/star.svg");
                                     icon-color: Theme.text_yellow;
                                     label: "Common Usage";
                                     value: root.qi_usage;
@@ -979,10 +1083,11 @@ export component AppWindow inherits Window {
                     HorizontalLayout {
                         spacing: 10px;
                         alignment: start;
-                        Text {
-                            text: "⚙";
-                            font-size: 22px;
-                            color: Theme.text_primary;
+                        Image {
+                            source: @image-url("../assets/icons/settings.svg");
+                            width: 22px;
+                            height: 22px;
+                            colorize: Theme.text_primary;
                             vertical-alignment: center;
                         }
                         Text {
@@ -1103,10 +1208,11 @@ export component AppWindow inherits Window {
                     HorizontalLayout {
                         spacing: 10px;
                         alignment: start;
-                        Text {
-                            text: "ⓘ";
-                            font-size: 22px;
-                            color: Theme.text_primary;
+                        Image {
+                            source: @image-url("../assets/icons/info.svg");
+                            width: 22px;
+                            height: 22px;
+                            colorize: Theme.text_primary;
                             vertical-alignment: center;
                         }
                         Text {
@@ -1187,11 +1293,12 @@ export component AppWindow inherits Window {
                 HorizontalLayout {
                     spacing: 6px;
                     alignment: start;
-                    Text {
-                        text: "●";
-                        font-size: 9px;
-                        color: Theme.text_green;
-                        vertical-alignment: center;
+                    Rectangle {
+                        width: 7px;
+                        height: 7px;
+                        border-radius: 3.5px;
+                        background: Theme.text_green;
+                        y: (parent.height - self.height) / 2;
                     }
                     Text {
                         text: "Ready to convert";
@@ -1210,11 +1317,12 @@ export component AppWindow inherits Window {
                         color: Theme.text_muted;
                         vertical-alignment: center;
                     }
-                    Text {
-                        text: "●";
-                        font-size: 6px;
-                        color: Theme.text_muted;
-                        vertical-alignment: center;
+                    Rectangle {
+                        width: 4px;
+                        height: 4px;
+                        border-radius: 2px;
+                        background: Theme.text_muted;
+                        y: (parent.height - self.height) / 2;
                     }
                     Text {
                         text: "No errors";
@@ -1222,10 +1330,11 @@ export component AppWindow inherits Window {
                         color: Theme.text_muted;
                         vertical-alignment: center;
                     }
-                    Text {
-                        text: "✓";
-                        font-size: 11px;
-                        color: Theme.text_green;
+                    Image {
+                        source: @image-url("../assets/icons/check-circle.svg");
+                        width: 13px;
+                        height: 13px;
+                        colorize: Theme.text_green;
                         vertical-alignment: center;
                     }
                 }
