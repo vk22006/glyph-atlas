@@ -132,10 +132,5 @@ Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
 
 ## License
 
-MIT — free to use, modify, and distribute.
+This project uses MIT license. For more details, refer [LICENSE](LICENSE)
 
----
-
-<div align="center">
-  <sub>Crafted for developers. ❤️</sub>
-</div>
