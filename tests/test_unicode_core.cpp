@@ -193,6 +193,27 @@ void test_hex_options() {
     TEST_ASSERT_EQ(format_unicode_escape(cps, true), "U+4F60 U+00A9", "Escape upper");
 }
 
+void test_combining_characters() {
+    // Combining Acute Accent: 'e' (U+0065) + combining acute accent (U+0301) -> é
+    const std::string text = "e\xCC\x81"; // UTF-8: 0x65, 0xCC 0x81
+    auto cps_nonlatin = get_codepoints(text, false);
+    std::vector<uint32_t> exp_nonlatin = {0x0301};
+    TEST_ASSERT(cps_nonlatin == exp_nonlatin, "Combining mark extracted when Latin is excluded");
+    TEST_ASSERT_EQ(format_unicode_escape(cps_nonlatin, true), "U+0301", "Combining mark escape");
+
+    auto cps_latin = get_codepoints(text, true);
+    std::vector<uint32_t> exp_latin = {0x0065, 0x0301};
+    TEST_ASSERT(cps_latin == exp_latin, "Base letter and combining mark both extracted with Latin included");
+    TEST_ASSERT_EQ(format_unicode_escape(cps_latin, true), "U+0065 U+0301", "Combining character escape with Latin");
+
+    // Devanagari combined: क (U+0915) + ि (U+093F combining vowel sign i) = कि
+    const std::string devanagari = "\xE0\xA4\x95\xE0\xA4\xBF";
+    auto cps_deva = get_codepoints(devanagari, false);
+    std::vector<uint32_t> exp_deva = {0x0915, 0x093F};
+    TEST_ASSERT(cps_deva == exp_deva, "Devanagari base and combining vowel mark extracted");
+    TEST_ASSERT_EQ(count_utf8_bytes(devanagari, false), 6ULL, "Devanagari 2 codepoints * 3 bytes = 6");
+}
+
 int main() {
     std::cout << "Running GlyphAtlas Unicode Core Unit Tests...\n";
 
@@ -205,6 +226,7 @@ int main() {
     test_whitespace();
     test_emoji_and_supplementary();
     test_hex_options();
+    test_combining_characters();
 
     std::cout << "\nResults: " << g_passed << " passed, " << g_failed << " failed.\n";
 
