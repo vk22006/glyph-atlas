@@ -44,8 +44,12 @@ export global Theme {
 component SecondaryButton inherits Rectangle {
     in-out property <string> text: "";
     in-out property <length> custom-font-size: 11px;
+    in-out property <length> custom-height: 26px;
     callback clicked();
 
+    height: root.custom-height;
+    vertical-stretch: 0;
+    horizontal-stretch: 0;
     background: ta.pressed ? Theme.btn_secondary_hover.darker(15%) : (ta.has-hover ? Theme.btn_secondary_hover : Theme.btn_secondary_bg);
     border-radius: 6px;
     border-width: 1px;
@@ -55,14 +59,13 @@ component SecondaryButton inherits Rectangle {
     HorizontalLayout {
         padding-left: 10px;
         padding-right: 10px;
-        padding-top: 5px;
-        padding-bottom: 5px;
         alignment: center;
         Text {
             text: root.text;
             color: Theme.text_secondary;
             font-size: root.custom-font-size;
             font-weight: 500;
+            vertical-alignment: center;
         }
     }
 
@@ -73,8 +76,12 @@ component SecondaryButton inherits Rectangle {
 
 component PrimaryButton inherits Rectangle {
     in-out property <string> text: "";
+    in-out property <length> custom-height: 32px;
     callback clicked();
 
+    height: root.custom-height;
+    vertical-stretch: 0;
+    horizontal-stretch: 0;
     background: ta.pressed ? Theme.btn_primary_hover.darker(15%) : (ta.has-hover ? Theme.btn_primary_hover : Theme.btn_primary_bg);
     border-radius: 8px;
     animate background { duration: 100ms; }
@@ -82,14 +89,13 @@ component PrimaryButton inherits Rectangle {
     HorizontalLayout {
         padding-left: 14px;
         padding-right: 14px;
-        padding-top: 7px;
-        padding-bottom: 7px;
         alignment: center;
         Text {
             text: root.text;
             color: #ffffff;
             font-size: 12px;
             font-weight: 600;
+            vertical-alignment: center;
         }
     }
 
@@ -175,6 +181,8 @@ component QuickInfoTile inherits Rectangle {
     border-radius: 8px;
     border-width: 1px;
     border-color: Theme.border_default;
+    vertical-stretch: 0;
+    height: 56px;
 
     VerticalLayout {
         padding-left: 12px;
@@ -354,6 +362,7 @@ export component AppWindow inherits Window {
 
                     // Header row
                     HorizontalLayout {
+                        vertical-stretch: 0;
                         alignment: space-between;
                         VerticalLayout {
                             spacing: 3px;
@@ -376,6 +385,7 @@ export component AppWindow inherits Window {
                             SecondaryButton {
                                 text: Theme.is_dark ? "🌙  Dark" : "☀  Light";
                                 custom-font-size: 12px;
+                                custom-height: 32px;
                                 clicked => {
                                     Theme.is_dark = !Theme.is_dark;
                                     root.toggle_theme();
@@ -383,6 +393,7 @@ export component AppWindow inherits Window {
                             }
                             PrimaryButton {
                                 text: "⧉  Copy All";
+                                custom-height: 32px;
                                 clicked => { root.copy_all(); }
                             }
                         }
@@ -390,6 +401,7 @@ export component AppWindow inherits Window {
 
                     // 2-Column Section
                     HorizontalLayout {
+                        vertical-stretch: 0;
                         spacing: 12px;
 
                         // Left Column
@@ -403,6 +415,7 @@ export component AppWindow inherits Window {
                                 border-radius: 10px;
                                 border-width: 1px;
                                 border-color: Theme.border_default;
+                                vertical-stretch: 0;
 
                                 VerticalLayout {
                                     padding: 12px;
@@ -416,7 +429,7 @@ export component AppWindow inherits Window {
                                     }
 
                                     Rectangle {
-                                        height: 108px;
+                                        height: 96px;
                                         background: Theme.bg_input;
                                         border-radius: 8px;
                                         border-width: 1px;
@@ -440,6 +453,8 @@ export component AppWindow inherits Window {
                                     }
 
                                     HorizontalLayout {
+                                        height: 28px;
+                                        vertical-stretch: 0;
                                         alignment: space-between;
                                         Text {
                                             text: "Characters: " + root.char_count;
@@ -449,6 +464,7 @@ export component AppWindow inherits Window {
                                         }
                                         SecondaryButton {
                                             text: "🗑  Clear";
+                                            custom-height: 26px;
                                             clicked => {
                                                 input_elem.text = "";
                                                 root.input_text = "";
@@ -465,12 +481,15 @@ export component AppWindow inherits Window {
                                 border-radius: 10px;
                                 border-width: 1px;
                                 border-color: Theme.border_default;
+                                vertical-stretch: 0;
 
                                 VerticalLayout {
                                     padding: 12px;
                                     spacing: 8px;
 
                                     HorizontalLayout {
+                                        height: 26px;
+                                        vertical-stretch: 0;
                                         alignment: space-between;
                                         Text {
                                             text: "▦  2. Codepoint Array (C/C++)";
@@ -481,6 +500,7 @@ export component AppWindow inherits Window {
                                         }
                                         SecondaryButton {
                                             text: "⧉  Copy";
+                                            custom-height: 24px;
                                             clicked => { root.copy_c_array(); }
                                         }
                                     }
@@ -556,12 +576,15 @@ export component AppWindow inherits Window {
                                 border-radius: 10px;
                                 border-width: 1px;
                                 border-color: Theme.border_default;
+                                vertical-stretch: 0;
 
                                 VerticalLayout {
                                     padding: 12px;
                                     spacing: 8px;
 
                                     HorizontalLayout {
+                                        height: 26px;
+                                        vertical-stretch: 0;
                                         alignment: space-between;
                                         Text {
                                             text: "#  Codepoint Count";
@@ -572,12 +595,13 @@ export component AppWindow inherits Window {
                                         }
                                         SecondaryButton {
                                             text: "⧉  Copy";
+                                            custom-height: 24px;
                                             clicked => { root.copy_count(); }
                                         }
                                     }
 
                                     Rectangle {
-                                        height: 40px;
+                                        height: 38px;
                                         background: Theme.bg_code;
                                         border-radius: 8px;
 
@@ -621,6 +645,9 @@ export component AppWindow inherits Window {
                                     }
                                 }
                             }
+
+                            // Spacer to absorb extra height
+                            Rectangle {}
                         }
 
                         // Right Column
@@ -634,6 +661,7 @@ export component AppWindow inherits Window {
                                 border-radius: 10px;
                                 border-width: 1px;
                                 border-color: Theme.border_default;
+                                vertical-stretch: 0;
 
                                 VerticalLayout {
                                     padding: 12px;
@@ -644,10 +672,11 @@ export component AppWindow inherits Window {
                                         font-size: 12px;
                                         font-weight: 700;
                                         color: Theme.text_secondary;
+                                        vertical-alignment: center;
                                     }
 
                                     Rectangle {
-                                        height: 108px;
+                                        height: 76px;
                                         background: Theme.bg_input;
                                         border-radius: 8px;
                                         border-width: 1px;
@@ -655,9 +684,8 @@ export component AppWindow inherits Window {
 
                                         Text {
                                             x: 16px;
-                                            y: 14px;
                                             width: parent.width - 32px;
-                                            height: parent.height - 28px;
+                                            height: parent.height;
                                             text: root.preview_text;
                                             font-size: 28px;
                                             font-family: root.current_font;
@@ -668,6 +696,8 @@ export component AppWindow inherits Window {
                                     }
 
                                     HorizontalLayout {
+                                        height: 28px;
+                                        vertical-stretch: 0;
                                         alignment: space-between;
                                         Text {
                                             text: "Font: " + root.current_font;
@@ -677,6 +707,7 @@ export component AppWindow inherits Window {
                                         }
                                         SecondaryButton {
                                             text: "T  Change Font";
+                                            custom-height: 26px;
                                             clicked => { root.change_font(); }
                                         }
                                     }
@@ -689,12 +720,15 @@ export component AppWindow inherits Window {
                                 border-radius: 10px;
                                 border-width: 1px;
                                 border-color: Theme.border_default;
+                                vertical-stretch: 0;
 
                                 VerticalLayout {
                                     padding: 12px;
                                     spacing: 8px;
 
                                     HorizontalLayout {
+                                        height: 26px;
+                                        vertical-stretch: 0;
                                         alignment: space-between;
                                         Text {
                                             text: "⬚  3. Other Formats";
@@ -705,12 +739,15 @@ export component AppWindow inherits Window {
                                         }
                                         SecondaryButton {
                                             text: "⧉  Copy";
+                                            custom-height: 24px;
                                             clicked => { root.copy_other_format(); }
                                         }
                                     }
 
                                     // Tab buttons row
                                     HorizontalLayout {
+                                        height: 26px;
+                                        vertical-stretch: 0;
                                         spacing: 4px;
                                         alignment: start;
 
@@ -789,9 +826,10 @@ export component AppWindow inherits Window {
 
                                     // Formats display box
                                     Rectangle {
-                                        height: 120px;
+                                        height: 164px;
                                         background: Theme.bg_code;
                                         border-radius: 8px;
+                                        clip: true;
 
                                         VerticalLayout {
                                             padding: 10px;
@@ -859,6 +897,9 @@ export component AppWindow inherits Window {
                                     }
                                 }
                             }
+
+                            // Spacer to absorb extra height in Right Column
+                            Rectangle {}
                         }
                     }
 
@@ -868,6 +909,7 @@ export component AppWindow inherits Window {
                         border-radius: 10px;
                         border-width: 1px;
                         border-color: Theme.border_default;
+                        vertical-stretch: 0;
 
                         VerticalLayout {
                             padding: 12px;
@@ -920,6 +962,9 @@ export component AppWindow inherits Window {
                             }
                         }
                     }
+
+                    // Spacer to absorb extra window height
+                    Rectangle {}
                 }
                 }
 
@@ -954,6 +999,7 @@ export component AppWindow inherits Window {
                         border-radius: 10px;
                         border-width: 1px;
                         border-color: Theme.border_default;
+                        vertical-stretch: 0;
 
                         VerticalLayout {
                             padding: 18px;
@@ -1077,6 +1123,7 @@ export component AppWindow inherits Window {
                         border-radius: 10px;
                         border-width: 1px;
                         border-color: Theme.border_default;
+                        vertical-stretch: 0;
 
                         VerticalLayout {
                             padding: 28px;
