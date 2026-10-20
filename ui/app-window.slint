@@ -1,37 +1,1187 @@
-import { Button, VerticalBox, HorizontalBox } from "std-widgets.slint";
+import { ScrollView } from "std-widgets.slint";
+
+export global Theme {
+    in-out property <bool> is_dark: true;
+
+    // Backgrounds
+    out property <color> bg_darkest: is_dark ? #0d0d12 : #f0f0f5;
+    out property <color> bg_sidebar: is_dark ? #111118 : #dddde8;
+    out property <color> bg_card: is_dark ? #16161f : #e8e8f0;
+    out property <color> bg_input: is_dark ? #1a1a26 : #f5f5fa;
+    out property <color> bg_code: is_dark ? #13131c : #f0f0f8;
+    out property <color> bg_hover: is_dark ? #1e1e2e : #e0e0eb;
+    out property <color> bg_selected: #24204a;
+    out property <color> bg_tab: is_dark ? #1a1a26 : #eaeaf0;
+    out property <color> bg_tab_selected: #6c47cc;
+    out property <color> bg_status: is_dark ? #0d0d12 : #f0f0f5;
+
+    // Borders
+    out property <color> border_default: is_dark ? #2a2a3d : #c8c8d8;
+    out property <color> border_input: is_dark ? #3d3d5c : #b0b0c8;
+    out property <color> border_accent: is_dark ? #5a3fa0 : #8060d0;
+
+    // Text colors
+    out property <color> text_primary: is_dark ? #e8e8f0 : #1a1a2e;
+    out property <color> text_secondary: is_dark ? #8888aa : #555570;
+    out property <color> text_muted: is_dark ? #55557a : #888898;
+    out property <color> text_accent: is_dark ? #a97ef5 : #6a3dc0;
+    out property <color> text_green: is_dark ? #4ec994 : #1a7f37;
+    out property <color> text_yellow: is_dark ? #f0c060 : #9a6700;
+    out property <color> text_blue: is_dark ? #4a7cf5 : #3060d0;
+
+    // Syntax styling colors
+    out property <color> text_code_base: is_dark ? #c5c5e0 : #2d2d44;
+    out property <color> text_code_type: is_dark ? #569cd6 : #0550ae;
+    out property <color> text_code_hex: is_dark ? #9d7fe3 : #6e40c9;
+
+    // Buttons
+    out property <color> btn_primary_bg: #6c47cc;
+    out property <color> btn_primary_hover: #7c55dd;
+    out property <color> btn_secondary_bg: is_dark ? #1e1e2e : #e0e0eb;
+    out property <color> btn_secondary_hover: is_dark ? #252535 : #d0d0dd;
+}
+
+component SecondaryButton inherits Rectangle {
+    in-out property <string> text: "";
+    in-out property <length> custom-font-size: 11px;
+    callback clicked();
+
+    background: ta.pressed ? Theme.btn_secondary_hover.darker(15%) : (ta.has-hover ? Theme.btn_secondary_hover : Theme.btn_secondary_bg);
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: Theme.border_default;
+    animate background { duration: 100ms; }
+
+    HorizontalLayout {
+        padding-left: 10px;
+        padding-right: 10px;
+        padding-top: 5px;
+        padding-bottom: 5px;
+        alignment: center;
+        Text {
+            text: root.text;
+            color: Theme.text_secondary;
+            font-size: root.custom-font-size;
+            font-weight: 500;
+        }
+    }
+
+    ta := TouchArea {
+        clicked => { root.clicked(); }
+    }
+}
+
+component PrimaryButton inherits Rectangle {
+    in-out property <string> text: "";
+    callback clicked();
+
+    background: ta.pressed ? Theme.btn_primary_hover.darker(15%) : (ta.has-hover ? Theme.btn_primary_hover : Theme.btn_primary_bg);
+    border-radius: 8px;
+    animate background { duration: 100ms; }
+
+    HorizontalLayout {
+        padding-left: 14px;
+        padding-right: 14px;
+        padding-top: 7px;
+        padding-bottom: 7px;
+        alignment: center;
+        Text {
+            text: root.text;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 600;
+        }
+    }
+
+    ta := TouchArea {
+        clicked => { root.clicked(); }
+    }
+}
+
+component ToggleSwitch inherits Rectangle {
+    in-out property <bool> checked: false;
+    callback toggled(bool);
+
+    width: 42px;
+    height: 22px;
+    border-radius: 11px;
+    background: root.checked ? #7c4ddf : (Theme.is_dark ? #3d3d5c : #b0b0c8);
+    animate background { duration: 150ms; }
+
+    thumb := Rectangle {
+        x: root.checked ? 22px : 3px;
+        y: 3px;
+        width: 16px;
+        height: 16px;
+        border-radius: 8px;
+        background: #ffffff;
+        animate x { duration: 150ms; easing: ease-out; }
+    }
+
+    TouchArea {
+        clicked => {
+            root.checked = !root.checked;
+            root.toggled(root.checked);
+        }
+    }
+}
+
+component NavItem inherits Rectangle {
+    in-out property <string> icon: "";
+    in-out property <string> label: "";
+    in-out property <bool> selected: false;
+    callback clicked();
+
+    height: 40px;
+    border-radius: 8px;
+    background: root.selected ? Theme.bg_selected : (ta.has-hover ? Theme.bg_hover : transparent);
+    animate background { duration: 100ms; }
+
+    HorizontalLayout {
+        padding-left: 14px;
+        padding-right: 14px;
+        spacing: 10px;
+        alignment: start;
+
+        Text {
+            text: root.icon;
+            font-size: 14px;
+            font-weight: 600;
+            color: root.selected ? Theme.text_accent : Theme.text_secondary;
+            vertical-alignment: center;
+        }
+
+        Text {
+            text: root.label;
+            font-size: 13px;
+            font-weight: root.selected ? 700 : 500;
+            color: root.selected ? #ffffff : Theme.text_secondary;
+            vertical-alignment: center;
+        }
+    }
+
+    ta := TouchArea {
+        clicked => { root.clicked(); }
+    }
+}
+
+component QuickInfoTile inherits Rectangle {
+    in-out property <string> icon: "";
+    in-out property <color> icon-color: Theme.text_accent;
+    in-out property <string> label: "";
+    in-out property <string> value: "";
+
+    background: Theme.bg_input;
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: Theme.border_default;
+
+    VerticalLayout {
+        padding-left: 12px;
+        padding-right: 12px;
+        padding-top: 8px;
+        padding-bottom: 8px;
+        spacing: 4px;
+
+        HorizontalLayout {
+            spacing: 6px;
+            alignment: start;
+            Text {
+                text: root.icon;
+                font-size: 11px;
+                color: root.icon-color;
+                font-weight: 700;
+            }
+            Text {
+                text: root.label;
+                font-size: 11px;
+                color: Theme.text_muted;
+            }
+        }
+
+        Text {
+            text: root.value;
+            font-size: 15px;
+            font-weight: 700;
+            color: Theme.text_primary;
+        }
+    }
+}
 
 export component AppWindow inherits Window {
     title: "GlyphAtlas";
-    min-width: 600px;
-    min-height: 400px;
-    preferred-width: 900px;
-    preferred-height: 600px;
-    background: #0d0d12;
+    min-width: 900px;
+    min-height: 600px;
+    preferred-width: 1080px;
+    preferred-height: 780px;
+    background: Theme.bg_darkest;
 
-    VerticalBox {
-        alignment: center;
-        spacing: 16px;
+    // ── App State Properties ──────────────────────────────────────────────────
+    in-out property <int> current_page: 0; // 0 = Converter, 1 = Settings, 2 = About
 
-        Text {
-            text: "GlyphAtlas";
-            font-size: 28px;
-            font-weight: 700;
-            color: #e8e8f0;
-            horizontal-alignment: center;
+    in-out property <string> input_text: "";
+    in-out property <int> char_count: 0;
+
+    // Converter C Array Code Outputs
+    in-out property <string> c_array_full: "";
+    in-out property <string> c_array_line2: "";
+    in-out property <bool> c_array_empty: true;
+
+    // Codepoint count
+    in-out property <string> count_statement: "int count = 0;";
+    in-out property <int> count_val: 0;
+
+    // Other Formats
+    in-out property <int> selected_tab: 0; // 0=Vector, 1=JSON, 2=Space, 3=Escape
+    in-out property <string> other_format_output: "";
+    in-out property <string> other_format_line2: "";
+    in-out property <bool> other_format_empty: true;
+
+    // Preview
+    in-out property <string> preview_text: "";
+    in-out property <string> current_font: "Microsoft YaHei";
+
+    // Quick Info
+    in-out property <string> qi_decimal: "0";
+    in-out property <string> qi_utf8: "0";
+    in-out property <string> qi_first: "—";
+    in-out property <string> qi_last: "—";
+    in-out property <string> qi_usage: "N/A";
+
+    // Settings
+    in-out property <bool> setting_include_latin: false;
+    in-out property <bool> setting_hex_prefix: true;
+    in-out property <bool> setting_uppercase_hex: false;
+
+    // ── Callbacks to C++ ──────────────────────────────────────────────────────
+    callback input_changed(string);
+    callback copy_c_array();
+    callback copy_count();
+    callback copy_other_format();
+    callback copy_all();
+    callback clear_input();
+    callback change_font();
+    callback toggle_theme();
+    callback setting_changed(bool, bool, bool);
+    callback tab_changed(int);
+
+    VerticalLayout {
+        padding: 0;
+        spacing: 0;
+
+        HorizontalLayout {
+            padding: 0;
+            spacing: 0;
+
+            // ── Sidebar ───────────────────────────────────────────────────────
+            Rectangle {
+                width: 200px;
+                background: Theme.bg_sidebar;
+                border-width: 0;
+                border-color: Theme.border_default;
+
+                Rectangle {
+                    x: parent.width - 1px;
+                    y: 0;
+                    width: 1px;
+                    height: parent.height;
+                    background: Theme.border_default;
+                }
+
+                VerticalLayout {
+                    padding-left: 12px;
+                    padding-right: 12px;
+                    padding-top: 18px;
+                    padding-bottom: 16px;
+                    spacing: 8px;
+
+                    // Logo container
+                    Rectangle {
+                        height: 54px;
+                        Image {
+                            source: @image-url("../assets/logo.PNG");
+                            width: 172px;
+                            height: 52px;
+                            image-fit: contain;
+                        }
+                    }
+
+                    // Divider
+                    Rectangle {
+                        height: 1px;
+                        background: Theme.border_default;
+                    }
+
+                    // Navigation buttons
+                    NavItem {
+                        icon: "</>";
+                        label: "Converter";
+                        selected: root.current_page == 0;
+                        clicked => { root.current_page = 0; }
+                    }
+
+                    NavItem {
+                        icon: "⚙";
+                        label: "Settings";
+                        selected: root.current_page == 1;
+                        clicked => { root.current_page = 1; }
+                    }
+
+                    NavItem {
+                        icon: "ⓘ";
+                        label: "About";
+                        selected: root.current_page == 2;
+                        clicked => { root.current_page = 2; }
+                    }
+
+                    // Flexible vertical spacer
+                    Rectangle {}
+                }
+            }
+
+            // ── Main Content Area ─────────────────────────────────────────────
+            Rectangle {
+                background: Theme.bg_darkest;
+
+                // PAGE 0: Converter
+                if root.current_page == 0 : ScrollView {
+                    VerticalLayout {
+                        padding-left: 24px;
+                        padding-right: 24px;
+                    padding-top: 18px;
+                    padding-bottom: 14px;
+                    spacing: 12px;
+
+                    // Header row
+                    HorizontalLayout {
+                        alignment: space-between;
+                        VerticalLayout {
+                            spacing: 3px;
+                            Text {
+                                text: "Text to Codepoint Converter";
+                                font-size: 20px;
+                                font-weight: 700;
+                                color: Theme.text_primary;
+                            }
+                            Text {
+                                text: "Enter any text and convert it to Unicode codepoints for your C/C++ projects.";
+                                font-size: 12px;
+                                color: Theme.text_secondary;
+                            }
+                        }
+
+                        HorizontalLayout {
+                            spacing: 8px;
+                            alignment: center;
+                            SecondaryButton {
+                                text: Theme.is_dark ? "🌙  Dark" : "☀  Light";
+                                custom-font-size: 12px;
+                                clicked => {
+                                    Theme.is_dark = !Theme.is_dark;
+                                    root.toggle_theme();
+                                }
+                            }
+                            PrimaryButton {
+                                text: "⧉  Copy All";
+                                clicked => { root.copy_all(); }
+                            }
+                        }
+                    }
+
+                    // 2-Column Section
+                    HorizontalLayout {
+                        spacing: 12px;
+
+                        // Left Column
+                        VerticalLayout {
+                            horizontal-stretch: 1;
+                            spacing: 10px;
+
+                            // Card 1: Input Text
+                            Rectangle {
+                                background: Theme.bg_card;
+                                border-radius: 10px;
+                                border-width: 1px;
+                                border-color: Theme.border_default;
+
+                                VerticalLayout {
+                                    padding: 12px;
+                                    spacing: 8px;
+
+                                    Text {
+                                        text: "⇄  1. Input Text";
+                                        font-size: 12px;
+                                        font-weight: 700;
+                                        color: Theme.text_secondary;
+                                    }
+
+                                    Rectangle {
+                                        height: 108px;
+                                        background: Theme.bg_input;
+                                        border-radius: 8px;
+                                        border-width: 1px;
+                                        border-color: Theme.border_input;
+
+                                        input_elem := TextInput {
+                                            x: 10px;
+                                            y: 8px;
+                                            width: parent.width - 20px;
+                                            height: parent.height - 16px;
+                                            text: root.input_text;
+                                            color: Theme.text_primary;
+                                            font-size: 14px;
+                                            wrap: word-wrap;
+                                            single-line: false;
+                                            edited => {
+                                                root.input_text = self.text;
+                                                root.input_changed(self.text);
+                                            }
+                                        }
+                                    }
+
+                                    HorizontalLayout {
+                                        alignment: space-between;
+                                        Text {
+                                            text: "Characters: " + root.char_count;
+                                            font-size: 11px;
+                                            color: Theme.text_muted;
+                                            vertical-alignment: center;
+                                        }
+                                        SecondaryButton {
+                                            text: "🗑  Clear";
+                                            clicked => {
+                                                input_elem.text = "";
+                                                root.input_text = "";
+                                                root.clear_input();
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Card 2: Codepoint Array
+                            Rectangle {
+                                background: Theme.bg_card;
+                                border-radius: 10px;
+                                border-width: 1px;
+                                border-color: Theme.border_default;
+
+                                VerticalLayout {
+                                    padding: 12px;
+                                    spacing: 8px;
+
+                                    HorizontalLayout {
+                                        alignment: space-between;
+                                        Text {
+                                            text: "▦  2. Codepoint Array (C/C++)";
+                                            font-size: 12px;
+                                            font-weight: 700;
+                                            color: Theme.text_secondary;
+                                            vertical-alignment: center;
+                                        }
+                                        SecondaryButton {
+                                            text: "⧉  Copy";
+                                            clicked => { root.copy_c_array(); }
+                                        }
+                                    }
+
+                                    Rectangle {
+                                        height: 72px;
+                                        background: Theme.bg_code;
+                                        border-radius: 8px;
+
+                                        VerticalLayout {
+                                            padding: 10px;
+                                            spacing: 2px;
+                                            alignment: center;
+
+                                            if root.c_array_empty : HorizontalLayout {
+                                                spacing: 0;
+                                                alignment: start;
+                                                Text {
+                                                    text: "int ";
+                                                    font-family: "Consolas";
+                                                    font-size: 12px;
+                                                    font-weight: 600;
+                                                    color: Theme.text_code_type;
+                                                }
+                                                Text {
+                                                    text: "codepoints[] = {};";
+                                                    font-family: "Consolas";
+                                                    font-size: 12px;
+                                                    color: Theme.text_code_base;
+                                                }
+                                            }
+
+                                            if !root.c_array_empty : HorizontalLayout {
+                                                spacing: 0;
+                                                alignment: start;
+                                                Text {
+                                                    text: "int ";
+                                                    font-family: "Consolas";
+                                                    font-size: 12px;
+                                                    font-weight: 600;
+                                                    color: Theme.text_code_type;
+                                                }
+                                                Text {
+                                                    text: "codepoints[] = {";
+                                                    font-family: "Consolas";
+                                                    font-size: 12px;
+                                                    color: Theme.text_code_base;
+                                                }
+                                            }
+
+                                            if !root.c_array_empty : Text {
+                                                text: "    " + root.c_array_line2;
+                                                font-family: "Consolas";
+                                                font-size: 12px;
+                                                color: Theme.text_code_hex;
+                                                wrap: word-wrap;
+                                            }
+
+                                            if !root.c_array_empty : Text {
+                                                text: "};";
+                                                font-family: "Consolas";
+                                                font-size: 12px;
+                                                color: Theme.text_code_base;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Card 3: Codepoint Count
+                            Rectangle {
+                                background: Theme.bg_card;
+                                border-radius: 10px;
+                                border-width: 1px;
+                                border-color: Theme.border_default;
+
+                                VerticalLayout {
+                                    padding: 12px;
+                                    spacing: 8px;
+
+                                    HorizontalLayout {
+                                        alignment: space-between;
+                                        Text {
+                                            text: "#  Codepoint Count";
+                                            font-size: 12px;
+                                            font-weight: 700;
+                                            color: Theme.text_secondary;
+                                            vertical-alignment: center;
+                                        }
+                                        SecondaryButton {
+                                            text: "⧉  Copy";
+                                            clicked => { root.copy_count(); }
+                                        }
+                                    }
+
+                                    Rectangle {
+                                        height: 40px;
+                                        background: Theme.bg_code;
+                                        border-radius: 8px;
+
+                                        HorizontalLayout {
+                                            padding-left: 12px;
+                                            padding-right: 12px;
+                                            alignment: start;
+                                            spacing: 0;
+
+                                            Text {
+                                                text: "int ";
+                                                font-family: "Consolas";
+                                                font-size: 13px;
+                                                font-weight: 600;
+                                                color: Theme.text_code_type;
+                                                vertical-alignment: center;
+                                            }
+                                            Text {
+                                                text: "count = ";
+                                                font-family: "Consolas";
+                                                font-size: 13px;
+                                                color: Theme.text_code_base;
+                                                vertical-alignment: center;
+                                            }
+                                            Text {
+                                                text: "" + root.count_val;
+                                                font-family: "Consolas";
+                                                font-size: 13px;
+                                                font-weight: 700;
+                                                color: Theme.text_code_hex;
+                                                vertical-alignment: center;
+                                            }
+                                            Text {
+                                                text: ";";
+                                                font-family: "Consolas";
+                                                font-size: 13px;
+                                                color: Theme.text_code_base;
+                                                vertical-alignment: center;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Right Column
+                        VerticalLayout {
+                            horizontal-stretch: 1;
+                            spacing: 10px;
+
+                            // Card 1: Live Preview
+                            Rectangle {
+                                background: Theme.bg_card;
+                                border-radius: 10px;
+                                border-width: 1px;
+                                border-color: Theme.border_default;
+
+                                VerticalLayout {
+                                    padding: 12px;
+                                    spacing: 8px;
+
+                                    Text {
+                                        text: "👁  Live Preview";
+                                        font-size: 12px;
+                                        font-weight: 700;
+                                        color: Theme.text_secondary;
+                                    }
+
+                                    Rectangle {
+                                        height: 108px;
+                                        background: Theme.bg_input;
+                                        border-radius: 8px;
+                                        border-width: 1px;
+                                        border-color: Theme.border_default;
+
+                                        Text {
+                                            x: 16px;
+                                            y: 14px;
+                                            width: parent.width - 32px;
+                                            height: parent.height - 28px;
+                                            text: root.preview_text;
+                                            font-size: 28px;
+                                            font-family: root.current_font;
+                                            color: Theme.text_primary;
+                                            wrap: word-wrap;
+                                            vertical-alignment: center;
+                                        }
+                                    }
+
+                                    HorizontalLayout {
+                                        alignment: space-between;
+                                        Text {
+                                            text: "Font: " + root.current_font;
+                                            font-size: 11px;
+                                            color: Theme.text_muted;
+                                            vertical-alignment: center;
+                                        }
+                                        SecondaryButton {
+                                            text: "T  Change Font";
+                                            clicked => { root.change_font(); }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Card 2: Other Formats
+                            Rectangle {
+                                background: Theme.bg_card;
+                                border-radius: 10px;
+                                border-width: 1px;
+                                border-color: Theme.border_default;
+
+                                VerticalLayout {
+                                    padding: 12px;
+                                    spacing: 8px;
+
+                                    HorizontalLayout {
+                                        alignment: space-between;
+                                        Text {
+                                            text: "⬚  3. Other Formats";
+                                            font-size: 12px;
+                                            font-weight: 700;
+                                            color: Theme.text_secondary;
+                                            vertical-alignment: center;
+                                        }
+                                        SecondaryButton {
+                                            text: "⧉  Copy";
+                                            clicked => { root.copy_other_format(); }
+                                        }
+                                    }
+
+                                    // Tab buttons row
+                                    HorizontalLayout {
+                                        spacing: 4px;
+                                        alignment: start;
+
+                                        Rectangle {
+                                            height: 26px;
+                                            border-radius: 6px;
+                                            background: root.selected_tab == 0 ? Theme.btn_primary_bg : Theme.bg_tab;
+                                            HorizontalLayout {
+                                                padding-left: 8px;
+                                                padding-right: 8px;
+                                                Text {
+                                                    text: "C++ Vector";
+                                                    font-size: 11px;
+                                                    font-weight: root.selected_tab == 0 ? 700 : 500;
+                                                    color: root.selected_tab == 0 ? #ffffff : Theme.text_secondary;
+                                                    vertical-alignment: center;
+                                                }
+                                            }
+                                            TouchArea { clicked => { root.selected_tab = 0; root.tab_changed(0); } }
+                                        }
+
+                                        Rectangle {
+                                            height: 26px;
+                                            border-radius: 6px;
+                                            background: root.selected_tab == 1 ? Theme.btn_primary_bg : Theme.bg_tab;
+                                            HorizontalLayout {
+                                                padding-left: 8px;
+                                                padding-right: 8px;
+                                                Text {
+                                                    text: "JSON";
+                                                    font-size: 11px;
+                                                    font-weight: root.selected_tab == 1 ? 700 : 500;
+                                                    color: root.selected_tab == 1 ? #ffffff : Theme.text_secondary;
+                                                    vertical-alignment: center;
+                                                }
+                                            }
+                                            TouchArea { clicked => { root.selected_tab = 1; root.tab_changed(1); } }
+                                        }
+
+                                        Rectangle {
+                                            height: 26px;
+                                            border-radius: 6px;
+                                            background: root.selected_tab == 2 ? Theme.btn_primary_bg : Theme.bg_tab;
+                                            HorizontalLayout {
+                                                padding-left: 8px;
+                                                padding-right: 8px;
+                                                Text {
+                                                    text: "Space Separated";
+                                                    font-size: 11px;
+                                                    font-weight: root.selected_tab == 2 ? 700 : 500;
+                                                    color: root.selected_tab == 2 ? #ffffff : Theme.text_secondary;
+                                                    vertical-alignment: center;
+                                                }
+                                            }
+                                            TouchArea { clicked => { root.selected_tab = 2; root.tab_changed(2); } }
+                                        }
+
+                                        Rectangle {
+                                            height: 26px;
+                                            border-radius: 6px;
+                                            background: root.selected_tab == 3 ? Theme.btn_primary_bg : Theme.bg_tab;
+                                            HorizontalLayout {
+                                                padding-left: 8px;
+                                                padding-right: 8px;
+                                                Text {
+                                                    text: "Unicode Escape";
+                                                    font-size: 11px;
+                                                    font-weight: root.selected_tab == 3 ? 700 : 500;
+                                                    color: root.selected_tab == 3 ? #ffffff : Theme.text_secondary;
+                                                    vertical-alignment: center;
+                                                }
+                                            }
+                                            TouchArea { clicked => { root.selected_tab = 3; root.tab_changed(3); } }
+                                        }
+                                    }
+
+                                    // Formats display box
+                                    Rectangle {
+                                        height: 120px;
+                                        background: Theme.bg_code;
+                                        border-radius: 8px;
+
+                                        VerticalLayout {
+                                            padding: 10px;
+                                            spacing: 2px;
+                                            alignment: center;
+
+                                            // Vector mode
+                                            if root.selected_tab == 0 && root.other_format_empty : HorizontalLayout {
+                                                spacing: 0;
+                                                alignment: start;
+                                                Text {
+                                                    text: "std::vector<int> ";
+                                                    font-family: "Consolas";
+                                                    font-size: 12px;
+                                                    font-weight: 600;
+                                                    color: Theme.text_code_type;
+                                                }
+                                                Text {
+                                                    text: "codepoints = {};";
+                                                    font-family: "Consolas";
+                                                    font-size: 12px;
+                                                    color: Theme.text_code_base;
+                                                }
+                                            }
+                                            if root.selected_tab == 0 && !root.other_format_empty : HorizontalLayout {
+                                                spacing: 0;
+                                                alignment: start;
+                                                Text {
+                                                    text: "std::vector<int> ";
+                                                    font-family: "Consolas";
+                                                    font-size: 12px;
+                                                    font-weight: 600;
+                                                    color: Theme.text_code_type;
+                                                }
+                                                Text {
+                                                    text: "codepoints = {";
+                                                    font-family: "Consolas";
+                                                    font-size: 12px;
+                                                    color: Theme.text_code_base;
+                                                }
+                                            }
+                                            if root.selected_tab == 0 && !root.other_format_empty : Text {
+                                                text: "    " + root.other_format_line2;
+                                                font-family: "Consolas";
+                                                font-size: 12px;
+                                                color: Theme.text_code_hex;
+                                                wrap: word-wrap;
+                                            }
+                                            if root.selected_tab == 0 && !root.other_format_empty : Text {
+                                                text: "};";
+                                                font-family: "Consolas";
+                                                font-size: 12px;
+                                                color: Theme.text_code_base;
+                                            }
+
+                                            // JSON, Space, Escape
+                                            if root.selected_tab != 0 : Text {
+                                                text: root.other_format_output;
+                                                font-family: "Consolas";
+                                                font-size: 12px;
+                                                color: root.selected_tab == 1 ? Theme.text_code_hex : Theme.text_code_base;
+                                                wrap: word-wrap;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Quick Info Card
+                    Rectangle {
+                        background: Theme.bg_card;
+                        border-radius: 10px;
+                        border-width: 1px;
+                        border-color: Theme.border_default;
+
+                        VerticalLayout {
+                            padding: 12px;
+                            spacing: 8px;
+
+                            Text {
+                                text: "ⓘ  Quick Info";
+                                font-size: 12px;
+                                font-weight: 700;
+                                color: Theme.text_secondary;
+                            }
+
+                            HorizontalLayout {
+                                spacing: 8px;
+                                QuickInfoTile {
+                                    horizontal-stretch: 1;
+                                    icon: "#";
+                                    icon-color: Theme.text_accent;
+                                    label: "Decimal Count";
+                                    value: root.qi_decimal;
+                                }
+                                QuickInfoTile {
+                                    horizontal-stretch: 1;
+                                    icon: "A";
+                                    icon-color: Theme.text_blue;
+                                    label: "UTF-8 Bytes";
+                                    value: root.qi_utf8;
+                                }
+                                QuickInfoTile {
+                                    horizontal-stretch: 1;
+                                    icon: "</>";
+                                    icon-color: Theme.text_green;
+                                    label: "First Codepoint";
+                                    value: root.qi_first;
+                                }
+                                QuickInfoTile {
+                                    horizontal-stretch: 1;
+                                    icon: "</>";
+                                    icon-color: Theme.text_green;
+                                    label: "Last Codepoint";
+                                    value: root.qi_last;
+                                }
+                                QuickInfoTile {
+                                    horizontal-stretch: 1;
+                                    icon: "★";
+                                    icon-color: Theme.text_yellow;
+                                    label: "Common Usage";
+                                    value: root.qi_usage;
+                                }
+                            }
+                        }
+                    }
+                }
+                }
+
+                // PAGE 1: Settings
+                if root.current_page == 1 : VerticalLayout {
+                    padding-left: 28px;
+                    padding-right: 28px;
+                    padding-top: 24px;
+                    padding-bottom: 24px;
+                    spacing: 16px;
+
+                    HorizontalLayout {
+                        spacing: 10px;
+                        alignment: start;
+                        Text {
+                            text: "⚙";
+                            font-size: 22px;
+                            color: Theme.text_primary;
+                            vertical-alignment: center;
+                        }
+                        Text {
+                            text: "Settings";
+                            font-size: 22px;
+                            font-weight: 700;
+                            color: Theme.text_primary;
+                            vertical-alignment: center;
+                        }
+                    }
+
+                    Rectangle {
+                        background: Theme.bg_card;
+                        border-radius: 10px;
+                        border-width: 1px;
+                        border-color: Theme.border_default;
+
+                        VerticalLayout {
+                            padding: 18px;
+                            spacing: 16px;
+
+                            // Setting 1
+                            HorizontalLayout {
+                                alignment: space-between;
+                                VerticalLayout {
+                                    spacing: 2px;
+                                    Text {
+                                        text: "Include Latin characters";
+                                        font-size: 13px;
+                                        font-weight: 600;
+                                        color: Theme.text_primary;
+                                    }
+                                    Text {
+                                        text: "When enabled, Latin printable characters are also converted.";
+                                        font-size: 11px;
+                                        color: Theme.text_muted;
+                                    }
+                                }
+                                ToggleSwitch {
+                                    checked: root.setting_include_latin;
+                                    toggled(val) => {
+                                        root.setting_include_latin = val;
+                                        root.setting_changed(root.setting_include_latin, root.setting_hex_prefix, root.setting_uppercase_hex);
+                                    }
+                                }
+                            }
+
+                            Rectangle { height: 1px; background: Theme.border_default; }
+
+                            // Setting 2
+                            HorizontalLayout {
+                                alignment: space-between;
+                                VerticalLayout {
+                                    spacing: 2px;
+                                    Text {
+                                        text: "Show hex prefix (0x)";
+                                        font-size: 13px;
+                                        font-weight: 600;
+                                        color: Theme.text_primary;
+                                    }
+                                    Text {
+                                        text: "Prefix hex codepoints with 0x.";
+                                        font-size: 11px;
+                                        color: Theme.text_muted;
+                                    }
+                                }
+                                ToggleSwitch {
+                                    checked: root.setting_hex_prefix;
+                                    toggled(val) => {
+                                        root.setting_hex_prefix = val;
+                                        root.setting_changed(root.setting_include_latin, root.setting_hex_prefix, root.setting_uppercase_hex);
+                                    }
+                                }
+                            }
+
+                            Rectangle { height: 1px; background: Theme.border_default; }
+
+                            // Setting 3
+                            HorizontalLayout {
+                                alignment: space-between;
+                                VerticalLayout {
+                                    spacing: 2px;
+                                    Text {
+                                        text: "Uppercase hex";
+                                        font-size: 13px;
+                                        font-weight: 600;
+                                        color: Theme.text_primary;
+                                    }
+                                    Text {
+                                        text: "Use uppercase hex digits (e.g. 0x4f60 → 0x4F60).";
+                                        font-size: 11px;
+                                        color: Theme.text_muted;
+                                    }
+                                }
+                                ToggleSwitch {
+                                    checked: root.setting_uppercase_hex;
+                                    toggled(val) => {
+                                        root.setting_uppercase_hex = val;
+                                        root.setting_changed(root.setting_include_latin, root.setting_hex_prefix, root.setting_uppercase_hex);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Rectangle {}
+                }
+
+                // PAGE 2: About
+                if root.current_page == 2 : VerticalLayout {
+                    padding-left: 28px;
+                    padding-right: 28px;
+                    padding-top: 24px;
+                    padding-bottom: 24px;
+                    spacing: 16px;
+
+                    HorizontalLayout {
+                        spacing: 10px;
+                        alignment: start;
+                        Text {
+                            text: "ⓘ";
+                            font-size: 22px;
+                            color: Theme.text_primary;
+                            vertical-alignment: center;
+                        }
+                        Text {
+                            text: "About";
+                            font-size: 22px;
+                            font-weight: 700;
+                            color: Theme.text_primary;
+                            vertical-alignment: center;
+                        }
+                    }
+
+                    Rectangle {
+                        background: Theme.bg_card;
+                        border-radius: 10px;
+                        border-width: 1px;
+                        border-color: Theme.border_default;
+
+                        VerticalLayout {
+                            padding: 28px;
+                            spacing: 10px;
+                            alignment: center;
+
+                            Image {
+                                source: @image-url("../assets/logo.PNG");
+                                height: 60px;
+                                image-fit: contain;
+                            }
+
+                            Text {
+                                text: "GlyphAtlas v1.0.0";
+                                font-size: 16px;
+                                font-weight: 700;
+                                color: Theme.text_primary;
+                                horizontal-alignment: center;
+                            }
+
+                            Text {
+                                text: "Unicode to Codepoint Converter — Made simple.";
+                                font-size: 12px;
+                                color: Theme.text_secondary;
+                                horizontal-alignment: center;
+                            }
+
+                            Text {
+                                text: "GlyphAtlas converts non-Latin Unicode characters into C/C++ codepoint arrays.\nIdeal for game developers, embedded engineers, and anyone working with\nmulti-language text in native codebases.";
+                                font-size: 12px;
+                                color: Theme.text_muted;
+                                horizontal-alignment: center;
+                            }
+                        }
+                    }
+
+                    Rectangle {}
+                }
+            }
         }
 
-        Text {
-            text: "Unicode to Codepoint Converter — Slint (C++20 / Windows ARM64)";
-            font-size: 14px;
-            color: #8888aa;
-            horizontal-alignment: center;
-        }
+        // ── Status Bar (Bottom across entire window) ──────────────────────────
+        Rectangle {
+            height: 30px;
+            background: Theme.bg_status;
+            border-width: 0;
 
-        HorizontalBox {
-            alignment: center;
-            Button {
-                text: "Minimal Scaffold Ready";
-                primary: true;
+            Rectangle {
+                x: 0;
+                y: 0;
+                width: parent.width;
+                height: 1px;
+                background: Theme.border_default;
+            }
+
+            HorizontalLayout {
+                padding-left: 14px;
+                padding-right: 14px;
+                alignment: space-between;
+
+                HorizontalLayout {
+                    spacing: 6px;
+                    alignment: start;
+                    Text {
+                        text: "●";
+                        font-size: 9px;
+                        color: Theme.text_green;
+                        vertical-alignment: center;
+                    }
+                    Text {
+                        text: "Ready to convert";
+                        font-size: 11px;
+                        color: Theme.text_muted;
+                        vertical-alignment: center;
+                    }
+                }
+
+                HorizontalLayout {
+                    spacing: 6px;
+                    alignment: end;
+                    Text {
+                        text: "UTF-8";
+                        font-size: 11px;
+                        color: Theme.text_muted;
+                        vertical-alignment: center;
+                    }
+                    Text {
+                        text: "●";
+                        font-size: 6px;
+                        color: Theme.text_muted;
+                        vertical-alignment: center;
+                    }
+                    Text {
+                        text: "No errors";
+                        font-size: 11px;
+                        color: Theme.text_muted;
+                        vertical-alignment: center;
+                    }
+                    Text {
+                        text: "✓";
+                        font-size: 11px;
+                        color: Theme.text_green;
+                        vertical-alignment: center;
+                    }
+                }
             }
         }
     }
