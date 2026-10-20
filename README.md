@@ -67,7 +67,7 @@ That question started GlyphAtlas. Originally built in Python, GlyphAtlas has bee
 
 ## Screenshot
 
-![GlyphAtlas screenshot](./assets/screenshot.png)
+![GlyphAtlas screenshot](./assets/screenshot_.png)
 
 ---
 
