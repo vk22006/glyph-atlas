@@ -23,7 +23,15 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Slint)
 
-add_executable(GlyphAtlas src/main.cpp)
+if(WIN32)
+    enable_language(RC)
+    set(GLYPHATLAS_RC "${CMAKE_CURRENT_SOURCE_DIR}/assets/GlyphAtlas.rc")
+    set_source_files_properties("${GLYPHATLAS_RC}" PROPERTIES
+        INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/assets"
+    )
+endif()
+
+add_executable(GlyphAtlas src/main.cpp ${GLYPHATLAS_RC})
 slint_target_sources(GlyphAtlas ui/app-window.slint)
 target_link_libraries(GlyphAtlas PRIVATE Slint::Slint glyph_core)
 
