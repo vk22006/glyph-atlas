@@ -55,6 +55,53 @@ void copy_to_clipboard(std::string_view utf8_text) {
 #endif
 }
 
+#ifdef _WIN32
+bool apply_native_window_icon() {
+    HINSTANCE hInstance = GetModuleHandleW(nullptr);
+    HICON hIconBig = static_cast<HICON>(LoadImageW(
+        hInstance, MAKEINTRESOURCEW(1), IMAGE_ICON, 32, 32, LR_DEFAULTCOLOR));
+    HICON hIconSmall = static_cast<HICON>(LoadImageW(
+        hInstance, MAKEINTRESOURCEW(1), IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR));
+
+    if (!hIconBig && !hIconSmall) {
+        hIconBig = LoadIconW(hInstance, MAKEINTRESOURCEW(1));
+        hIconSmall = hIconBig;
+    }
+
+    if (!hIconBig && !hIconSmall) {
+        return false;
+    }
+
+    struct EnumData {
+        HICON big;
+        HICON small;
+        DWORD current_pid;
+        bool found;
+    };
+    EnumData data{hIconBig, hIconSmall, GetCurrentProcessId(), false};
+
+    EnumWindows([](HWND hwnd, LPARAM lParam) -> BOOL {
+        auto* d = reinterpret_cast<EnumData*>(lParam);
+        DWORD pid = 0;
+        GetWindowThreadProcessId(hwnd, &pid);
+        if (pid == d->current_pid) {
+            if (d->small) {
+                SetClassLongPtrW(hwnd, GCLP_HICONSM, reinterpret_cast<LONG_PTR>(d->small));
+                PostMessageW(hwnd, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(d->small));
+            }
+            if (d->big) {
+                SetClassLongPtrW(hwnd, GCLP_HICON, reinterpret_cast<LONG_PTR>(d->big));
+                PostMessageW(hwnd, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(d->big));
+            }
+            d->found = true;
+        }
+        return TRUE;
+    }, reinterpret_cast<LPARAM>(&data));
+
+    return data.found;
+}
+#endif
+
 struct AppController {
     std::string input_text;
     FormatOptions options;
@@ -244,6 +291,16 @@ int main(int argc, char **argv) {
         // Theme property toggled directly inside Slint UI
     });
 
+    app->show();
+#ifdef _WIN32
+    apply_native_window_icon();
+    auto icon_timer = std::make_shared<slint::Timer>();
+    icon_timer->start(slint::TimerMode::Repeated, std::chrono::milliseconds(50), [icon_timer]() {
+        if (apply_native_window_icon()) {
+            icon_timer->stop();
+        }
+    });
+#endif
     app->run();
     return 0;
 }
